@@ -5,11 +5,13 @@ import { TabNav } from './components/TabNav'
 import { LeadsList } from './components/LeadsList'
 import { LeadForm } from './components/LeadForm'
 import { UserSelect } from './components/UserSelect'
+import { UserManagement } from './components/UserManagement'
+import { StatsPanel } from './components/StatsPanel'
 
 function AppContent() {
-  const { currentUser, view, isLoaded, editingLead } = useApp()
+  const { currentUser, view, isLoaded, users } = useApp()
 
-  if (!isLoaded) {
+  if (!isLoaded || users.length === 0) {
     return (
       <div className="app loading-screen">
         <div className="loading-content">
@@ -22,6 +24,34 @@ function AppContent() {
 
   if (!currentUser) {
     return <UserSelect />
+  }
+
+  // Settings view (User Management)
+  if (view === 'settings') {
+    return (
+      <div className="app">
+        <Header />
+        <main className="main-content">
+          <div className="content-area">
+            <UserManagement />
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  // Stats view
+  if (view === 'stats') {
+    return (
+      <div className="app">
+        <Header />
+        <main className="main-content">
+          <div className="content-area">
+            <StatsPanel />
+          </div>
+        </main>
+      </div>
+    )
   }
 
   return (

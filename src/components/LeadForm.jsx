@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
+import { Loader2 } from 'lucide-react'
 
 const INTEREST_OPTIONS = ['SS26', 'F26', 'Core', 'Reorder', 'New Account']
 
@@ -7,14 +8,6 @@ const TEMPERATURE_OPTIONS = [
   { value: 'hot', label: 'HOT LEAD', emoji: '🔥' },
   { value: 'warm', label: 'WARM', emoji: '☀️' },
   { value: 'browsing', label: 'BROWSING', emoji: '👀' }
-]
-
-const US_STATES = [
-  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
-  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
-  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
-  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 ]
 
 export function LeadForm() {
@@ -25,7 +18,9 @@ export function LeadForm() {
     storeName: '',
     email: '',
     phone: '',
-    cityState: '',
+    zipCode: '',
+    city: '',
+    state: '',
     interests: [],
     temperature: '',
     notes: ''
@@ -33,6 +28,8 @@ export function LeadForm() {
 
   const [errors, setErrors] = useState({})
   const [isSaving, setIsSaving] = useState(false)
+  const [isLookingUpZip, setIsLookingUpZip] = useState(false)
+  const [zipError, setZipError] = useState('')
 
   const isEditing = view === 'edit' && editingLead
 
@@ -43,7 +40,9 @@ export function LeadForm() {
         storeName: editingLead.storeName || '',
         email: editingLead.email || '',
         phone: editingLead.phone || '',
-        cityState: [editingLead.city, editingLead.state].filter(Boolean).join(', ') || '',
+        zipCode: editingLead.zipCode || '',
+        city: editingLead.city || '',
+        state: editingLead.state || '',
         interests: editingLead.interests || [],
         temperature: editingLead.temperature || '',
         notes: editingLead.notes || ''
@@ -54,13 +53,16 @@ export function LeadForm() {
         storeName: '',
         email: '',
         phone: '',
-        cityState: '',
+        zipCode: '',
+        city: '',
+        state: '',
         interests: [],
         temperature: '',
         notes: ''
       })
     }
     setErrors({})
+    setZipError('')
   }, [isEditing, editingLead])
 
   const updateField = (field, value) => {
@@ -77,6 +79,52 @@ export function LeadForm() {
         ? prev.interests.filter(i => i !== interest)
         : [...prev.interests, interest]
     }))
+  }
+
+  // Auto-lookup ZIP code
+  const lookupZipCode = async (zip) => {
+    if (zip.length !== 5 || !/^\d{5}$/.test(zip)) {
+      return
+    }
+
+    setIsLookingUpZip(true)
+    setZipError('')
+
+    try {
+      const response = await fetch(`https://api.zippopotam.us/us/${zip}`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.places && data.places.length > 0) {
+          const place = data.places[0]
+          setFormData(prev => ({
+            ...prev,
+            city: place['place name'],
+            state: place['state abbreviation']
+          }))
+        }
+      } else {
+        setZipError('ZIP code not found')
+      }
+    } catch (error) {
+      console.error('ZIP lookup error:', error)
+      setZipError('Could not lookup ZIP')
+    } finally {
+      setIsLookingUpZip(false)
+    }
+  }
+
+  const handleZipChange = (e) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 5)
+    updateField('zipCode', value)
+    setZipError('')
+
+    // Auto-lookup when 5 digits entered
+    if (value.length === 5) {
+      lookupZipCode(value)
+    } else {
+      // Clear city/state if ZIP is incomplete
+      setFormData(prev => ({ ...prev, city: '', state: '' }))
+    }
   }
 
   const validate = () => {
@@ -96,15 +144,6 @@ export function LeadForm() {
     return Object.keys(newErrors).length === 0
   }
 
-  const parseCityState = (cityState) => {
-    if (!cityState) return { city: '', state: '' }
-    const parts = cityState.split(',').map(p => p.trim())
-    if (parts.length >= 2) {
-      return { city: parts[0], state: parts[1] }
-    }
-    return { city: parts[0] || '', state: '' }
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -113,14 +152,14 @@ export function LeadForm() {
     setIsSaving(true)
 
     try {
-      const { city, state } = parseCityState(formData.cityState)
       const leadData = {
         contactName: formData.contactName,
         storeName: formData.storeName,
         email: formData.email,
         phone: formData.phone,
-        city,
-        state,
+        zipCode: formData.zipCode,
+        city: formData.city,
+        state: formData.state,
         interests: formData.interests,
         temperature: formData.temperature,
         notes: formData.notes
@@ -131,7 +170,7 @@ export function LeadForm() {
       } else {
         addLead({
           ...leadData,
-          createdBy: currentUser
+          createdBy: currentUser.name
         })
       }
 
@@ -141,7 +180,9 @@ export function LeadForm() {
         storeName: '',
         email: '',
         phone: '',
-        cityState: '',
+        zipCode: '',
+        city: '',
+        state: '',
         interests: [],
         temperature: '',
         notes: ''
@@ -210,15 +251,33 @@ export function LeadForm() {
           />
         </div>
 
-        {/* City / State - Full width */}
-        <div className="form-group form-group-full">
+        {/* ZIP Code */}
+        <div className="form-group">
+          <label className="form-label">
+            ZIP CODE
+            {isLookingUpZip && <Loader2 size={14} className="zip-loader" />}
+          </label>
+          <input
+            type="text"
+            className={`form-input ${zipError ? 'has-zip-error' : ''}`}
+            placeholder="90210"
+            value={formData.zipCode}
+            onChange={handleZipChange}
+            maxLength={5}
+            inputMode="numeric"
+          />
+          {zipError && <span className="zip-error-text">{zipError}</span>}
+        </div>
+
+        {/* City / State (auto-populated) */}
+        <div className="form-group">
           <label className="form-label">CITY / STATE</label>
           <input
             type="text"
-            className="form-input"
-            placeholder="Chicago, IL"
-            value={formData.cityState}
-            onChange={(e) => updateField('cityState', e.target.value)}
+            className="form-input form-input-readonly"
+            placeholder="Auto-fills from ZIP"
+            value={formData.city && formData.state ? `${formData.city}, ${formData.state}` : ''}
+            readOnly
           />
         </div>
 

@@ -23,6 +23,7 @@ export default async function handler(req, res) {
           store_name as "storeName",
           email,
           phone,
+          zip_code as "zipCode",
           city,
           state,
           interests,
@@ -43,7 +44,7 @@ export default async function handler(req, res) {
 
     // PUT - Update lead
     if (req.method === 'PUT') {
-      const { contactName, storeName, email, phone, city, state, interests, temperature, notes } = req.body;
+      const { contactName, storeName, email, phone, zipCode, city, state, interests, temperature, notes } = req.body;
 
       const result = await sql`
         UPDATE leads
@@ -52,6 +53,7 @@ export default async function handler(req, res) {
           store_name = ${storeName},
           email = ${email || null},
           phone = ${phone || null},
+          zip_code = ${zipCode || null},
           city = ${city || null},
           state = ${state || null},
           interests = ${interests || []},
@@ -65,6 +67,7 @@ export default async function handler(req, res) {
           store_name as "storeName",
           email,
           phone,
+          zip_code as "zipCode",
           city,
           state,
           interests,

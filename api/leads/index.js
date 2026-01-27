@@ -22,6 +22,7 @@ export default async function handler(req, res) {
           store_name as "storeName",
           email,
           phone,
+          zip_code as "zipCode",
           city,
           state,
           interests,
@@ -38,17 +39,18 @@ export default async function handler(req, res) {
 
     // POST - Create new lead
     if (req.method === 'POST') {
-      const { contactName, storeName, email, phone, city, state, interests, temperature, notes, createdBy } = req.body;
+      const { contactName, storeName, email, phone, zipCode, city, state, interests, temperature, notes, createdBy } = req.body;
 
       const result = await sql`
-        INSERT INTO leads (contact_name, store_name, email, phone, city, state, interests, temperature, notes, created_by)
-        VALUES (${contactName}, ${storeName}, ${email || null}, ${phone || null}, ${city || null}, ${state || null}, ${interests || []}, ${temperature}, ${notes || null}, ${createdBy || null})
+        INSERT INTO leads (contact_name, store_name, email, phone, zip_code, city, state, interests, temperature, notes, created_by)
+        VALUES (${contactName}, ${storeName}, ${email || null}, ${phone || null}, ${zipCode || null}, ${city || null}, ${state || null}, ${interests || []}, ${temperature}, ${notes || null}, ${createdBy || null})
         RETURNING
           id,
           contact_name as "contactName",
           store_name as "storeName",
           email,
           phone,
+          zip_code as "zipCode",
           city,
           state,
           interests,

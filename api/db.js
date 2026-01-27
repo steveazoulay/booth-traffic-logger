@@ -18,6 +18,7 @@ export async function initDb() {
       store_name VARCHAR(255) NOT NULL,
       email VARCHAR(255),
       phone VARCHAR(50),
+      zip_code VARCHAR(10),
       city VARCHAR(100),
       state VARCHAR(50),
       interests TEXT[],
@@ -27,6 +28,11 @@ export async function initDb() {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP
     )
+  `;
+
+  // Add zip_code column if it doesn't exist (for existing tables)
+  await sql`
+    ALTER TABLE leads ADD COLUMN IF NOT EXISTS zip_code VARCHAR(10)
   `;
 
   return { success: true };

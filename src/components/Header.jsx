@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
-import { LogOut, Download, Settings, X } from 'lucide-react'
+import { LogOut, Download, Settings, X, BarChart3, Users } from 'lucide-react'
 
 export function Header() {
-  const { currentUser, logout, exportToCSV, leads, getStats } = useApp()
+  const { currentUser, logout, exportToCSV, leads, getStats, setView } = useApp()
   const [menuOpen, setMenuOpen] = useState(false)
   const [exportSuccess, setExportSuccess] = useState(false)
 
@@ -15,6 +15,16 @@ export function Header() {
       setExportSuccess(true)
       setTimeout(() => setExportSuccess(false), 2000)
     }
+    setMenuOpen(false)
+  }
+
+  const handleStatsClick = () => {
+    setView('stats')
+    setMenuOpen(false)
+  }
+
+  const handleSettingsClick = () => {
+    setView('settings')
     setMenuOpen(false)
   }
 
@@ -57,8 +67,16 @@ export function Header() {
         <div className="header-menu">
           <div className="menu-user">
             <span className="user-label">Logged in as</span>
-            <span className="user-name">{currentUser}</span>
+            <span className="user-name">{currentUser?.name}</span>
           </div>
+
+          <button
+            className="menu-item"
+            onClick={handleStatsClick}
+          >
+            <BarChart3 size={18} />
+            <span>Analytics Dashboard</span>
+          </button>
 
           <button
             className="menu-item"
@@ -67,6 +85,14 @@ export function Header() {
           >
             <Download size={18} />
             <span>Export CSV ({leads.length} leads)</span>
+          </button>
+
+          <button
+            className="menu-item"
+            onClick={handleSettingsClick}
+          >
+            <Users size={18} />
+            <span>Manage Users</span>
           </button>
 
           <button
