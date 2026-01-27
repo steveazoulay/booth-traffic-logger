@@ -9,6 +9,11 @@ export function Header() {
 
   const stats = getStats()
 
+  const handleLogoClick = () => {
+    setView('list')
+    setMenuOpen(false)
+  }
+
   const handleExport = () => {
     const filename = exportToCSV()
     if (filename) {
@@ -32,7 +37,13 @@ export function Header() {
     <header className="header">
       <div className="header-top">
         <div className="header-brand">
-          <img src="/logo.png" alt="Stone Rose" className="logo-img" />
+          <img
+            src="/logo.png"
+            alt="Stone Rose"
+            className="logo-img"
+            onClick={handleLogoClick}
+            title="Back to Home"
+          />
         </div>
         <div className="badge">CHICAGO 2026</div>
         <button

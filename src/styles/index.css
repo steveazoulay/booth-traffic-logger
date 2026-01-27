@@ -275,20 +275,26 @@ button {
 
 /* Logo Images */
 .logo-img {
-  height: 28px;
+  height: 44px;
   width: auto;
   filter: brightness(0) invert(1); /* Makes it white/cream on dark background */
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.logo-img:hover {
+  opacity: 0.85;
 }
 
 .logo-img-large {
-  height: 50px;
+  height: 70px;
   width: auto;
   filter: brightness(0) invert(1);
   margin-bottom: var(--space-md);
 }
 
 .logo-img-loading {
-  height: 60px;
+  height: 80px;
   width: auto;
   filter: brightness(0) invert(1);
 }
