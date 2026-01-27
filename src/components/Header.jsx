@@ -38,7 +38,8 @@ export function Header() {
     <header className="header">
       <div className="header-top">
         <div className="header-top-inner">
-          <div className="header-brand">
+          <div className="header-spacer"></div>
+          <div className="header-brand-center">
             <img
               src="/logo.png"
               alt="Stone Rose"
@@ -46,8 +47,8 @@ export function Header() {
               onClick={handleLogoClick}
               title="Back to Home"
             />
+            <div className="badge">CHICAGO 2026</div>
           </div>
-          <div className="badge">CHICAGO 2026</div>
           <button
             className="settings-button"
             onClick={() => setMenuOpen(!menuOpen)}

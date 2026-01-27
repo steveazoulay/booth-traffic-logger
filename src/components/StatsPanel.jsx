@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
-import { TrendingUp, MapPin, Building, Tag, Users, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react'
+import { TrendingUp, MapPin, Building, Tag, Users, ChevronDown, ChevronUp, BarChart3, Map } from 'lucide-react'
 import { Charts } from './Charts'
+import { LeadsHeatmap } from './LeadsHeatmap'
 
 export function StatsPanel() {
   const { getDetailedStats, setView } = useApp()
   const [showCharts, setShowCharts] = useState(true)
+  const [showMap, setShowMap] = useState(true)
   const stats = getDetailedStats()
 
   const [expandedSection, setExpandedSection] = useState('all')
@@ -66,6 +68,26 @@ export function StatsPanel() {
         {showCharts && (
           <div className="stats-section-content">
             <Charts />
+          </div>
+        )}
+      </div>
+
+      {/* Geographic Heatmap */}
+      <div className="stats-section">
+        <button
+          className="stats-section-header"
+          onClick={() => setShowMap(!showMap)}
+        >
+          <div className="section-title">
+            <Map size={18} />
+            <span>Geographic Distribution</span>
+          </div>
+          {showMap ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+        </button>
+
+        {showMap && (
+          <div className="stats-section-content">
+            <LeadsHeatmap />
           </div>
         )}
       </div>

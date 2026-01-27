@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useApp } from '../context/AppContext'
-import { Loader2, AlertTriangle } from 'lucide-react'
+import { Loader2, AlertTriangle, Camera } from 'lucide-react'
 import { VoiceRecorder } from './VoiceRecorder'
+import { BusinessCardScanner } from './BusinessCardScanner'
 
 const INTEREST_OPTIONS = ['SS26', 'F26', 'Core', 'Reorder', 'New Account']
 
@@ -32,6 +33,7 @@ export function LeadForm() {
   const [isSaving, setIsSaving] = useState(false)
   const [isLookingUpZip, setIsLookingUpZip] = useState(false)
   const [zipError, setZipError] = useState('')
+  const [showScanner, setShowScanner] = useState(false)
 
   const isEditing = view === 'edit' && editingLead
 
@@ -179,6 +181,19 @@ export function LeadForm() {
     }
   }
 
+  const handleScanComplete = (scannedData) => {
+    setFormData(prev => ({
+      ...prev,
+      contactName: scannedData.contactName || prev.contactName,
+      storeName: scannedData.storeName || prev.storeName,
+      email: scannedData.email || prev.email,
+      phone: scannedData.phone || prev.phone,
+      city: scannedData.city || prev.city,
+      state: scannedData.state || prev.state
+    }))
+    setShowScanner(false)
+  }
+
   const validate = () => {
     const newErrors = {}
 
@@ -253,7 +268,26 @@ export function LeadForm() {
 
   return (
     <form className="lead-form" onSubmit={handleSubmit}>
-      <h2 className="form-title">{isEditing ? 'Edit Visitor' : 'New Visitor'}</h2>
+      <div className="form-header-row">
+        <h2 className="form-title">{isEditing ? 'Edit Visitor' : 'New Visitor'}</h2>
+        {!isEditing && (
+          <button
+            type="button"
+            className="scan-btn"
+            onClick={() => setShowScanner(true)}
+          >
+            <Camera size={18} />
+            <span>Scan Card</span>
+          </button>
+        )}
+      </div>
+
+      {showScanner && (
+        <BusinessCardScanner
+          onScanComplete={handleScanComplete}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
 
       {potentialDuplicates.length > 0 && (
         <div className="duplicate-warning">

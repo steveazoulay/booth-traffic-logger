@@ -274,6 +274,17 @@ button {
   width: 100%;
 }
 
+.header-spacer {
+  width: 40px;
+}
+
+.header-brand-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
 .logo {
   font-family: var(--font-display);
   font-size: 1.25rem;
@@ -523,12 +534,19 @@ button {
   to { opacity: 1; }
 }
 
+.form-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+}
+
 .form-title {
   font-family: var(--font-display);
   font-size: 1.5rem;
   font-weight: 500;
   color: var(--navy);
-  margin-bottom: var(--space-lg);
+  margin: 0;
   font-style: italic;
 }
 
@@ -2247,5 +2265,397 @@ button {
   gap: var(--space-xs);
   font-size: 0.8125rem;
   color: var(--gray-600);
+}
+
+/* ========================================
+   BUSINESS CARD SCANNER
+   ======================================== */
+
+.scanner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-md);
+}
+
+.scanner-modal {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.scanner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.scanner-header h3 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--navy);
+  margin: 0;
+}
+
+.scanner-close {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-500);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s;
+}
+
+.scanner-close:hover {
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+
+.scanner-content {
+  padding: var(--space-lg);
+  flex: 1;
+  overflow-y: auto;
+}
+
+.scanner-error {
+  background: var(--hot-bg);
+  color: var(--hot);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-md);
+  font-size: 0.875rem;
+}
+
+.scanner-options {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+}
+
+.scanner-option-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xl);
+  background: var(--gray-50);
+  border: 2px dashed var(--gray-300);
+  border-radius: var(--radius-lg);
+  color: var(--gray-600);
+  transition: all 0.15s;
+  flex: 1;
+}
+
+.scanner-option-btn:hover {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: var(--cream);
+}
+
+.scanner-camera {
+  position: relative;
+}
+
+.scanner-video {
+  width: 100%;
+  border-radius: var(--radius-md);
+  background: var(--gray-900);
+}
+
+.scanner-camera-controls {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.scanner-cancel-btn {
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--gray-200);
+  color: var(--gray-700);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+}
+
+.scanner-capture-btn {
+  width: 64px;
+  height: 64px;
+  background: var(--gold);
+  color: var(--navy);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s;
+}
+
+.scanner-capture-btn:hover {
+  transform: scale(1.05);
+}
+
+.scanner-preview {
+  text-align: center;
+}
+
+.scanner-image {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-md);
+}
+
+.scanner-preview-controls {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+}
+
+.scanner-retake-btn,
+.scanner-process-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+}
+
+.scanner-retake-btn {
+  background: var(--gray-200);
+  color: var(--gray-700);
+}
+
+.scanner-process-btn {
+  background: var(--navy);
+  color: var(--cream);
+}
+
+.scanner-process-btn:hover {
+  background: var(--navy-light);
+}
+
+.scanner-processing {
+  text-align: center;
+  padding: var(--space-xl);
+}
+
+.scanner-spinner {
+  animation: spin 1s linear infinite;
+  color: var(--gold);
+  margin-bottom: var(--space-md);
+}
+
+.scanner-processing p {
+  color: var(--gray-600);
+  margin-bottom: var(--space-md);
+}
+
+.scanner-progress {
+  height: 8px;
+  background: var(--gray-200);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: var(--space-sm);
+}
+
+.scanner-progress-fill {
+  height: 100%;
+  background: var(--gold);
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+
+.scanner-progress-text {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+}
+
+.scan-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--gray-100);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-md);
+  color: var(--gray-700);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+.scan-btn:hover {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: var(--cream);
+}
+
+/* ========================================
+   LEADS HEATMAP
+   ======================================== */
+
+.heatmap-container {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.heatmap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.heatmap-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--navy);
+  font-style: italic;
+  margin: 0;
+}
+
+.heatmap-stats {
+  display: flex;
+  gap: var(--space-md);
+  font-size: 0.75rem;
+  color: var(--gray-500);
+}
+
+.heatmap-empty {
+  padding: var(--space-2xl);
+  text-align: center;
+  color: var(--gray-500);
+}
+
+.heatmap-map {
+  height: 350px;
+  background: var(--gray-100);
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--gray-50);
+  border-top: 1px solid var(--gray-200);
+}
+
+.legend-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-600);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 0.75rem;
+  color: var(--gray-600);
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.heatmap-ranking {
+  padding: var(--space-md);
+  border-top: 1px solid var(--gray-200);
+}
+
+.heatmap-ranking h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin: 0 0 var(--space-sm) 0;
+}
+
+.heatmap-ranking .ranking-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.heatmap-ranking .ranking-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--gray-100);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+}
+
+.heatmap-ranking .ranking-position {
+  color: var(--gray-500);
+}
+
+.heatmap-ranking .ranking-name {
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.heatmap-ranking .ranking-count {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* Leaflet overrides */
+.leaflet-container {
+  font-family: var(--font-body);
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: var(--radius-md);
+}
+
+.leaflet-tooltip {
+  background: var(--navy);
+  color: var(--cream);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 0.75rem;
+}
+
+.leaflet-tooltip-top:before {
+  border-top-color: var(--navy);
+}
+
+@media (max-width: 640px) {
+  .heatmap-map {
+    height: 250px;
+  }
+
+  .heatmap-legend {
+    flex-wrap: wrap;
+  }
+
+  .scanner-options {
+    flex-direction: column;
+  }
 }
 
