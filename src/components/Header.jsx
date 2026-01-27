@@ -37,26 +37,29 @@ export function Header() {
   return (
     <header className="header">
       <div className="header-top">
-        <div className="header-brand">
-          <img
-            src="/logo.png"
-            alt="Stone Rose"
-            className="logo-img"
-            onClick={handleLogoClick}
-            title="Back to Home"
-          />
+        <div className="header-top-inner">
+          <div className="header-brand">
+            <img
+              src="/logo.png"
+              alt="Stone Rose"
+              className="logo-img"
+              onClick={handleLogoClick}
+              title="Back to Home"
+            />
+          </div>
+          <div className="badge">CHICAGO 2026</div>
+          <button
+            className="settings-button"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Settings"
+          >
+            {menuOpen ? <X size={20} /> : <Settings size={20} />}
+          </button>
         </div>
-        <div className="badge">CHICAGO 2026</div>
-        <button
-          className="settings-button"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Settings"
-        >
-          {menuOpen ? <X size={20} /> : <Settings size={20} />}
-        </button>
       </div>
 
       <div className="header-stats-row">
+        <div className="header-stats-row-inner">
         <div className="stats-row">
           <div className="stat-item">
             <span className="stat-value">{stats.total}</span>
@@ -64,18 +67,19 @@ export function Header() {
           </div>
           <div className="stat-item stat-hot">
             <span className="stat-value">{stats.hot}</span>
-            <span className="stat-label"><span className="stat-dot hot"></span> HOT</span>
+            <span className="stat-label"><span className="stat-icon">🔥</span> HOT</span>
           </div>
           <div className="stat-item stat-warm">
             <span className="stat-value">{stats.warm}</span>
-            <span className="stat-label"><span className="stat-dot warm"></span> WARM</span>
+            <span className="stat-label"><span className="stat-icon">🌞</span> WARM</span>
           </div>
           <div className="stat-item stat-browsing">
             <span className="stat-value">{stats.browsing}</span>
-            <span className="stat-label"><span className="stat-dot browsing"></span> BROWSE</span>
+            <span className="stat-label"><span className="stat-icon">👀</span> BROWSE</span>
           </div>
         </div>
         <DailyGoal />
+        </div>
       </div>
 
       {menuOpen && (

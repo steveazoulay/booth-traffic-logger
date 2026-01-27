@@ -246,20 +246,32 @@ button {
    ======================================== */
 
 .header {
-  background: var(--navy);
   color: var(--cream);
-  padding: calc(var(--safe-top) + var(--space-md)) var(--space-lg) var(--space-md);
   position: sticky;
   top: 0;
   z-index: 100;
 }
 
 .header-top {
+  background: var(--navy);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 100%;
+  padding: calc(var(--safe-top) + var(--space-md)) var(--space-lg) var(--space-md);
+}
+
+.header-top > * {
+  max-width: 900px;
+}
+
+.header-top-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   max-width: 900px;
-  margin: 0 auto var(--space-lg);
+  margin: 0 auto;
+  width: 100%;
 }
 
 .logo {
@@ -275,7 +287,7 @@ button {
 
 /* Logo Images */
 .logo-img {
-  height: 60px;
+  height: 100px;
   width: auto;
   filter: brightness(0) invert(1); /* Makes it white/cream on dark background */
   cursor: pointer;
@@ -328,7 +340,8 @@ button {
 /* Stats Row */
 .stats-row {
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
+  gap: var(--space-2xl);
   max-width: 600px;
   margin: 0 auto;
   text-align: center;
@@ -338,23 +351,28 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
+  min-width: 60px;
 }
 
 .stat-value {
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 600;
   color: var(--cream);
 }
 
 .stat-label {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.05em;
   color: var(--gray-400);
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.stat-icon {
+  font-size: 0.875rem;
 }
 
 .stat-dot {
@@ -994,11 +1012,15 @@ button {
   }
 
   .stats-row {
-    gap: var(--space-sm);
+    gap: var(--space-lg);
   }
 
   .stat-value {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
+  }
+
+  .logo-img {
+    height: 70px;
   }
 
   .tab-nav {
@@ -1867,12 +1889,22 @@ button {
    ======================================== */
 
 .header-stats-row {
+  background: var(--navy-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  padding: var(--space-lg) var(--space-lg);
+}
+
+.header-stats-row-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-lg);
   max-width: 900px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .daily-goal {
