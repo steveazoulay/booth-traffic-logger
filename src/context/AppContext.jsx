@@ -40,16 +40,8 @@ export function AppProvider({ children }) {
     }
   }, [])
 
-  // Load current user from localStorage
-  useEffect(() => {
-    const stored = localStorage.getItem(CURRENT_USER_KEY)
-    if (stored && users.length > 0) {
-      const user = users.find(u => u.id === stored || u.name === stored)
-      if (user) {
-        setCurrentUser(user)
-      }
-    }
-  }, [users])
+  // NOTE: We intentionally do NOT auto-login from localStorage
+  // Users must enter their passcode every time they open the app
 
   // Save users to localStorage when changed
   useEffect(() => {
@@ -67,7 +59,6 @@ export function AppProvider({ children }) {
     const user = users.find(u => u.id === userId)
     if (user) {
       setCurrentUser(user)
-      localStorage.setItem(CURRENT_USER_KEY, user.id)
       return true
     }
     return false
@@ -75,7 +66,6 @@ export function AppProvider({ children }) {
 
   const logout = () => {
     setCurrentUser(null)
-    localStorage.removeItem(CURRENT_USER_KEY)
     setView('list')
   }
 
