@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { LogOut, Download, Settings, X, BarChart3, Users } from 'lucide-react'
-import { DailyGoal } from './DailyGoal'
 
 export function Header() {
   const { currentUser, logout, exportToCSV, leads, getStats, setView } = useApp()
@@ -79,7 +78,6 @@ export function Header() {
             <span className="stat-label"><span className="stat-icon">👀</span> BROWSE</span>
           </div>
         </div>
-        <DailyGoal />
         </div>
       </div>
 
