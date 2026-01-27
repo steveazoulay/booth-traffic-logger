@@ -1,0 +1,100 @@
+CONTEXTE PROJET
+Stone Rose est une marque de mode masculine haut de gamme (chemises, polos, jackets). L'équipe participe au trade show Chicago Collective (31 jan - 3 fév 2026) au booth #7050.
+L'app sera utilisée par le staff (Shai, Steve, Darren, Jean-Claude) sur leurs phones/tablets pour logger les visiteurs du booth en temps réel.
+
+OBJECTIF
+Créer une web app mobile-first pour tracker les leads/visiteurs au booth pendant le trade show. Doit fonctionner offline (localStorage) et permettre export CSV pour follow-up post-show.
+
+FONCTIONNALITÉS REQUISES
+1. ADD LEAD (formulaire rapide)
+Champs:
+
+Contact Name (requis)
+Store Name (requis)
+Email
+Phone
+City / State
+
+Interest Tags (multi-select):
+
+SS26
+F26
+Core
+Reorder
+New Account
+
+Lead Temperature (single select, requis):
+
+🔥 Hot Lead
+☀️ Warm
+👀 Just Browsing
+
+Notes: champ texte libre
+Auto-capture: timestamp (date + heure)
+
+2. VIEW LEADS (liste)
+
+Afficher tous les leads
+Filtrer par température (All / Hot / Warm / Browsing)
+Card pour chaque lead avec: nom, store, city, email, phone, interests, notes, timestamp
+Actions: Edit / Delete
+
+
+3. STATS BAR
+Afficher en haut:
+
+Total leads
+
+Hot leads
+
+
+Warm leads
+
+
+Browsing leads
+
+
+
+4. EXPORT CSV
+
+Bouton export
+Génère fichier CSV avec toutes les colonnes
+Filename: StoneRose_Leads_Chicago_YYYY-MM-DD.csv
+
+
+5. STORAGE
+
+localStorage (fonctionne offline)
+Persiste entre sessions
+Key: stonerose_leads
+
+
+DESIGN / BRANDING
+Couleurs Stone Rose:
+
+Navy: #1B2A4A
+Gold: #C9A962
+Cream: #FAF8F5
+
+Typography:
+
+Headers: Cormorant Garamond (serif)
+Body: DM Sans (sans-serif)
+
+Style:
+
+Mobile-first (optimisé pour phone)
+Clean, luxury feel
+Badge "CHICAGO 2026" dans header
+Logo: "STONE ✿ ROSE"
+
+Lead card colors:
+
+Hot: border-left rouge (#C94444)
+Warm: border-left orange (#E6A23C)
+Browsing: border-left vert (#67A867)
+
+
+TECH STACK
+
+le meiller
