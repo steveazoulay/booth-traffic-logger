@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
-import { TrendingUp, MapPin, Building, Tag, Users, ChevronDown, ChevronUp } from 'lucide-react'
+import { TrendingUp, MapPin, Building, Tag, Users, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react'
+import { Charts } from './Charts'
 
 export function StatsPanel() {
   const { getDetailedStats, setView } = useApp()
+  const [showCharts, setShowCharts] = useState(true)
   const stats = getDetailedStats()
 
   const [expandedSection, setExpandedSection] = useState('all')
@@ -46,6 +48,26 @@ export function StatsPanel() {
           <span className="summary-value">{stats.temperature.browsing}</span>
           <span className="summary-label">Browsing</span>
         </div>
+      </div>
+
+      {/* Visual Charts */}
+      <div className="stats-section">
+        <button
+          className="stats-section-header"
+          onClick={() => setShowCharts(!showCharts)}
+        >
+          <div className="section-title">
+            <BarChart3 size={18} />
+            <span>Visual Analytics</span>
+          </div>
+          {showCharts ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+        </button>
+
+        {showCharts && (
+          <div className="stats-section-content">
+            <Charts />
+          </div>
+        )}
       </div>
 
       {/* Account Types */}
