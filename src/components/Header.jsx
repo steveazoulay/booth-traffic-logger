@@ -1,29 +1,14 @@
 import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
-import { LogOut, Download, Settings, X, BarChart3, Users, Moon, Sun } from 'lucide-react'
+import { LogOut, Download, Settings, X, BarChart3, Users } from 'lucide-react'
 import { DailyGoal } from './DailyGoal'
 
 export function Header() {
   const { currentUser, logout, exportToCSV, leads, getStats, setView } = useApp()
   const [menuOpen, setMenuOpen] = useState(false)
   const [exportSuccess, setExportSuccess] = useState(false)
-  const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem('stonerose_darkmode') === 'true'
-  })
 
   const stats = getStats()
-
-  const toggleDarkMode = () => {
-    const newMode = !darkMode
-    setDarkMode(newMode)
-    localStorage.setItem('stonerose_darkmode', String(newMode))
-    document.documentElement.classList.toggle('dark-mode', newMode)
-  }
-
-  // Apply dark mode on mount
-  React.useEffect(() => {
-    document.documentElement.classList.toggle('dark-mode', darkMode)
-  }, [])
 
   const handleLogoClick = () => {
     setView('list')
@@ -123,14 +108,6 @@ export function Header() {
           >
             <Users size={18} />
             <span>Manage Users</span>
-          </button>
-
-          <button
-            className="menu-item"
-            onClick={toggleDarkMode}
-          >
-            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
-            <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
           </button>
 
           <button

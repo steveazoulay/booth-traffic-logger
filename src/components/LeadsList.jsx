@@ -72,15 +72,17 @@ export function LeadsList() {
         <span className="list-count">{filteredLeads.length} of {leads.length}</span>
       </div>
 
-      <div className="search-bar">
-        <Search size={18} className="search-icon" />
-        <input
-          type="text"
-          placeholder="Search name, store, city, state, phone..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="search-input"
-        />
+      <div className="search-filter-row">
+        <div className="search-bar">
+          <Search size={18} className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search name, store, city, state, phone..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+          />
+        </div>
         <button
           className={`filter-toggle ${showFilters || activeFiltersCount > 0 ? 'active' : ''}`}
           onClick={() => setShowFilters(!showFilters)}

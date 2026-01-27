@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useApp } from '../context/AppContext'
 import { Loader2, AlertTriangle } from 'lucide-react'
+import { VoiceRecorder } from './VoiceRecorder'
 
 const INTEREST_OPTIONS = ['SS26', 'F26', 'Core', 'Reorder', 'New Account']
 
@@ -23,7 +24,8 @@ export function LeadForm() {
     state: '',
     interests: [],
     temperature: '',
-    notes: ''
+    notes: '',
+    voiceNote: null
   })
 
   const [errors, setErrors] = useState({})
@@ -93,7 +95,8 @@ export function LeadForm() {
         state: editingLead.state || '',
         interests: editingLead.interests || [],
         temperature: editingLead.temperature || '',
-        notes: editingLead.notes || ''
+        notes: editingLead.notes || '',
+        voiceNote: editingLead.voiceNote || null
       })
     } else {
       setFormData({
@@ -106,7 +109,8 @@ export function LeadForm() {
         state: '',
         interests: [],
         temperature: '',
-        notes: ''
+        notes: '',
+        voiceNote: null
       })
     }
     setErrors({})
@@ -210,7 +214,8 @@ export function LeadForm() {
         state: formData.state,
         interests: formData.interests,
         temperature: formData.temperature,
-        notes: formData.notes
+        notes: formData.notes,
+        voiceNote: formData.voiceNote
       }
 
       if (isEditing) {
@@ -233,7 +238,8 @@ export function LeadForm() {
         state: '',
         interests: [],
         temperature: '',
-        notes: ''
+        notes: '',
+        voiceNote: null
       })
 
       if (isEditing) {
@@ -393,6 +399,15 @@ export function LeadForm() {
             rows={3}
             value={formData.notes}
             onChange={(e) => updateField('notes', e.target.value)}
+          />
+        </div>
+
+        {/* Voice Note - Full width */}
+        <div className="form-group form-group-full">
+          <label className="form-label">VOICE NOTE</label>
+          <VoiceRecorder
+            value={formData.voiceNote}
+            onChange={(voiceNote) => updateField('voiceNote', voiceNote)}
           />
         </div>
       </div>
