@@ -125,7 +125,7 @@ export function UserSelect() {
   return (
     <div className="user-select-screen">
       <div className="user-select-content">
-        <div className="logo-large">STONE <span className="flower">✿</span> ROSE</div>
+        <img src="/logo.png" alt="Stone Rose" className="logo-img-large" />
         <div className="badge-large">CHICAGO COLLECTIVE 2026</div>
         <p className="booth-info">Booth #7050 • Jan 31 - Feb 3</p>
 

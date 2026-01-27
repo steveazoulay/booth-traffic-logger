@@ -32,7 +32,7 @@ export function Header() {
     <header className="header">
       <div className="header-top">
         <div className="header-brand">
-          <div className="logo">STONE <span className="flower">✿</span> ROSE</div>
+          <img src="/logo.png" alt="Stone Rose" className="logo-img" />
         </div>
         <div className="badge">CHICAGO 2026</div>
         <button

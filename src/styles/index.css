@@ -273,6 +273,26 @@ button {
   color: var(--gold);
 }
 
+/* Logo Images */
+.logo-img {
+  height: 28px;
+  width: auto;
+  filter: brightness(0) invert(1); /* Makes it white/cream on dark background */
+}
+
+.logo-img-large {
+  height: 50px;
+  width: auto;
+  filter: brightness(0) invert(1);
+  margin-bottom: var(--space-md);
+}
+
+.logo-img-loading {
+  height: 60px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}
+
 .badge {
   background: transparent;
   color: var(--cream);

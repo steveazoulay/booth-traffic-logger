@@ -15,7 +15,7 @@ function AppContent() {
     return (
       <div className="app loading-screen">
         <div className="loading-content">
-          <div className="logo">STONE <span className="flower">✿</span> ROSE</div>
+          <img src="/logo.png" alt="Stone Rose" className="logo-img-loading" />
           <div className="loading-spinner"></div>
         </div>
       </div>
