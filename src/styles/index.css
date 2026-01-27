@@ -72,6 +72,7 @@
 html {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
 }
 
 body {
@@ -83,6 +84,7 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 #root {
@@ -1995,13 +1997,17 @@ button {
 
 @media (max-width: 768px) {
   .header-stats-row {
+    padding: var(--space-md);
+  }
+
+  .header-stats-row-inner {
     flex-direction: column;
     gap: var(--space-md);
   }
 
   .daily-goal {
     width: 100%;
-    max-width: 300px;
+    max-width: none;
   }
 }
 
@@ -2370,12 +2376,29 @@ button {
 
 .scanner-camera {
   position: relative;
+  min-height: 200px;
+}
+
+.scanner-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  color: var(--gray-500);
+}
+
+.scanner-loading p {
+  margin-top: var(--space-sm);
+  font-size: 0.875rem;
 }
 
 .scanner-video {
   width: 100%;
   border-radius: var(--radius-md);
   background: var(--gray-900);
+  max-height: 300px;
+  object-fit: cover;
 }
 
 .scanner-camera-controls {
@@ -2626,6 +2649,17 @@ button {
 /* Leaflet overrides */
 .leaflet-container {
   font-family: var(--font-body);
+  z-index: 1;
+}
+
+.heatmap-map {
+  position: relative;
+  z-index: 1;
+}
+
+.stats-section-content {
+  position: relative;
+  z-index: 1;
 }
 
 .leaflet-popup-content-wrapper {

@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react'
-import { Camera, X, Loader2, Check, RotateCcw } from 'lucide-react'
+import React, { useState, useRef, useEffect } from 'react'
+import { Camera, X, Loader2, Check, RotateCcw, Upload } from 'lucide-react'
 import Tesseract from 'tesseract.js'
 
 export function BusinessCardScanner({ onScanComplete, onClose }) {
@@ -8,21 +8,44 @@ export function BusinessCardScanner({ onScanComplete, onClose }) {
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState(null)
+  const [cameraReady, setCameraReady] = useState(false)
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
   const streamRef = useRef(null)
   const fileInputRef = useRef(null)
 
+  // Attach stream to video when video element is ready
+  useEffect(() => {
+    if (isCapturing && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current
+      videoRef.current.onloadedmetadata = () => {
+        videoRef.current.play()
+        setCameraReady(true)
+      }
+    }
+  }, [isCapturing])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop())
+      }
+    }
+  }, [])
+
   const startCamera = async () => {
     setError(null)
+    setCameraReady(false)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
       })
       streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-      }
       setIsCapturing(true)
     } catch (err) {
       console.error('Camera error:', err)
@@ -195,13 +218,14 @@ export function BusinessCardScanner({ onScanComplete, onClose }) {
                 className="scanner-option-btn"
                 onClick={() => fileInputRef.current?.click()}
               >
-                <Camera size={24} />
+                <Upload size={24} />
                 <span>Upload Image</span>
               </button>
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                capture="environment"
                 onChange={handleFileUpload}
                 style={{ display: 'none' }}
               />
@@ -210,17 +234,29 @@ export function BusinessCardScanner({ onScanComplete, onClose }) {
 
           {isCapturing && (
             <div className="scanner-camera">
+              {!cameraReady && (
+                <div className="scanner-loading">
+                  <Loader2 size={32} className="scanner-spinner" />
+                  <p>Starting camera...</p>
+                </div>
+              )}
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
+                muted
                 className="scanner-video"
+                style={{ display: cameraReady ? 'block' : 'none' }}
               />
               <div className="scanner-camera-controls">
                 <button className="scanner-cancel-btn" onClick={stopCamera}>
                   Cancel
                 </button>
-                <button className="scanner-capture-btn" onClick={capturePhoto}>
+                <button
+                  className="scanner-capture-btn"
+                  onClick={capturePhoto}
+                  disabled={!cameraReady}
+                >
                   <Camera size={24} />
                 </button>
               </div>
