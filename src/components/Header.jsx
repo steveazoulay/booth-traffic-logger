@@ -1,13 +1,29 @@
 import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
-import { LogOut, Download, Settings, X, BarChart3, Users } from 'lucide-react'
+import { LogOut, Download, Settings, X, BarChart3, Users, Moon, Sun } from 'lucide-react'
+import { DailyGoal } from './DailyGoal'
 
 export function Header() {
   const { currentUser, logout, exportToCSV, leads, getStats, setView } = useApp()
   const [menuOpen, setMenuOpen] = useState(false)
   const [exportSuccess, setExportSuccess] = useState(false)
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('stonerose_darkmode') === 'true'
+  })
 
   const stats = getStats()
+
+  const toggleDarkMode = () => {
+    const newMode = !darkMode
+    setDarkMode(newMode)
+    localStorage.setItem('stonerose_darkmode', String(newMode))
+    document.documentElement.classList.toggle('dark-mode', newMode)
+  }
+
+  // Apply dark mode on mount
+  React.useEffect(() => {
+    document.documentElement.classList.toggle('dark-mode', darkMode)
+  }, [])
 
   const handleLogoClick = () => {
     setView('list')
@@ -55,23 +71,26 @@ export function Header() {
         </button>
       </div>
 
-      <div className="stats-row">
-        <div className="stat-item">
-          <span className="stat-value">{stats.total}</span>
-          <span className="stat-label">TOTAL</span>
+      <div className="header-stats-row">
+        <div className="stats-row">
+          <div className="stat-item">
+            <span className="stat-value">{stats.total}</span>
+            <span className="stat-label">TOTAL</span>
+          </div>
+          <div className="stat-item stat-hot">
+            <span className="stat-value">{stats.hot}</span>
+            <span className="stat-label"><span className="stat-dot hot"></span> HOT</span>
+          </div>
+          <div className="stat-item stat-warm">
+            <span className="stat-value">{stats.warm}</span>
+            <span className="stat-label"><span className="stat-dot warm"></span> WARM</span>
+          </div>
+          <div className="stat-item stat-browsing">
+            <span className="stat-value">{stats.browsing}</span>
+            <span className="stat-label"><span className="stat-dot browsing"></span> BROWSE</span>
+          </div>
         </div>
-        <div className="stat-item stat-hot">
-          <span className="stat-value">{stats.hot}</span>
-          <span className="stat-label"><span className="stat-dot hot"></span> HOT</span>
-        </div>
-        <div className="stat-item stat-warm">
-          <span className="stat-value">{stats.warm}</span>
-          <span className="stat-label"><span className="stat-dot warm"></span> WARM</span>
-        </div>
-        <div className="stat-item stat-browsing">
-          <span className="stat-value">{stats.browsing}</span>
-          <span className="stat-label"><span className="stat-dot browsing"></span> BROWSE</span>
-        </div>
+        <DailyGoal />
       </div>
 
       {menuOpen && (
@@ -104,6 +123,14 @@ export function Header() {
           >
             <Users size={18} />
             <span>Manage Users</span>
+          </button>
+
+          <button
+            className="menu-item"
+            onClick={toggleDarkMode}
+          >
+            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+            <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
           </button>
 
           <button

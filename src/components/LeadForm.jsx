@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useApp } from '../context/AppContext'
-import { Loader2 } from 'lucide-react'
+import { Loader2, AlertTriangle } from 'lucide-react'
 
 const INTEREST_OPTIONS = ['SS26', 'F26', 'Core', 'Reorder', 'New Account']
 
@@ -11,7 +11,7 @@ const TEMPERATURE_OPTIONS = [
 ]
 
 export function LeadForm() {
-  const { view, editingLead, addLead, updateLead, cancelEdit, currentUser, setView } = useApp()
+  const { view, editingLead, addLead, updateLead, cancelEdit, currentUser, setView, leads } = useApp()
 
   const [formData, setFormData] = useState({
     contactName: '',
@@ -32,6 +32,54 @@ export function LeadForm() {
   const [zipError, setZipError] = useState('')
 
   const isEditing = view === 'edit' && editingLead
+
+  // Duplicate detection
+  const potentialDuplicates = useMemo(() => {
+    if (isEditing) return []
+
+    const duplicates = []
+    const storeName = formData.storeName?.toLowerCase().trim()
+    const contactName = formData.contactName?.toLowerCase().trim()
+    const email = formData.email?.toLowerCase().trim()
+    const phone = formData.phone?.replace(/\D/g, '')
+
+    if (!storeName && !contactName && !email && !phone) return []
+
+    leads.forEach(lead => {
+      let matchScore = 0
+      let matchReasons = []
+
+      // Check store name (fuzzy match)
+      if (storeName && lead.storeName?.toLowerCase().includes(storeName)) {
+        matchScore += 2
+        matchReasons.push('store')
+      }
+
+      // Check contact name
+      if (contactName && lead.contactName?.toLowerCase().includes(contactName)) {
+        matchScore += 2
+        matchReasons.push('name')
+      }
+
+      // Check email (exact match)
+      if (email && lead.email?.toLowerCase() === email) {
+        matchScore += 3
+        matchReasons.push('email')
+      }
+
+      // Check phone (normalized)
+      if (phone && phone.length >= 7 && lead.phone?.replace(/\D/g, '').includes(phone)) {
+        matchScore += 3
+        matchReasons.push('phone')
+      }
+
+      if (matchScore >= 2) {
+        duplicates.push({ lead, matchScore, matchReasons })
+      }
+    })
+
+    return duplicates.sort((a, b) => b.matchScore - a.matchScore).slice(0, 3)
+  }, [leads, formData.storeName, formData.contactName, formData.email, formData.phone, isEditing])
 
   useEffect(() => {
     if (isEditing) {
@@ -200,6 +248,25 @@ export function LeadForm() {
   return (
     <form className="lead-form" onSubmit={handleSubmit}>
       <h2 className="form-title">{isEditing ? 'Edit Visitor' : 'New Visitor'}</h2>
+
+      {potentialDuplicates.length > 0 && (
+        <div className="duplicate-warning">
+          <div className="duplicate-header">
+            <AlertTriangle size={18} />
+            <span>Potential duplicate{potentialDuplicates.length > 1 ? 's' : ''} found!</span>
+          </div>
+          <div className="duplicate-list">
+            {potentialDuplicates.map(({ lead, matchReasons }) => (
+              <div key={lead.id} className="duplicate-item">
+                <strong>{lead.contactName}</strong> - {lead.storeName}
+                <span className="match-reasons">
+                  (matches: {matchReasons.join(', ')})
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="form-grid">
         {/* Contact Name */}
