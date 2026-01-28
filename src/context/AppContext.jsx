@@ -1,54 +1,91 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { useLeads } from '../hooks/useLeads'
+import { supabase } from '../lib/supabase'
 
 const AppContext = createContext(null)
 
-const USERS_KEY = 'stonerose_users'
-const CURRENT_USER_KEY = 'stonerose_current_user'
-
-// Default users with passcodes
-const DEFAULT_USERS = [
-  { id: '1', name: 'Shai', passcode: '1111' },
-  { id: '2', name: 'Steve', passcode: '2222' },
-  { id: '3', name: 'Darren', passcode: '3333' },
-  { id: '4', name: 'Jean-Claude', passcode: '4444' }
-]
-
 export function AppProvider({ children }) {
   const [users, setUsers] = useState([])
+  const [leads, setLeads] = useState([])
   const [currentUser, setCurrentUser] = useState(null)
-  const [view, setView] = useState('list') // 'list', 'add', 'edit', 'stats', 'settings'
+  const [view, setView] = useState('list')
   const [editingLead, setEditingLead] = useState(null)
-  const [filter, setFilter] = useState('all') // 'all', 'hot', 'warm', 'browsing'
+  const [filter, setFilter] = useState('all')
+  const [isLoading, setIsLoading] = useState(true)
 
-  const leadsHook = useLeads()
-
-  // Load users from localStorage
+  // Load users from Supabase
   useEffect(() => {
-    const stored = localStorage.getItem(USERS_KEY)
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored)
-        setUsers(parsed)
-      } catch {
-        setUsers(DEFAULT_USERS)
-        localStorage.setItem(USERS_KEY, JSON.stringify(DEFAULT_USERS))
-      }
-    } else {
-      setUsers(DEFAULT_USERS)
-      localStorage.setItem(USERS_KEY, JSON.stringify(DEFAULT_USERS))
+    loadUsers()
+  }, [])
+
+  // Load leads from Supabase
+  useEffect(() => {
+    loadLeads()
+
+    // Subscribe to real-time changes
+    const leadsSubscription = supabase
+      .channel('leads_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+        loadLeads()
+      })
+      .subscribe()
+
+    const usersSubscription = supabase
+      .channel('users_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
+        loadUsers()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(leadsSubscription)
+      supabase.removeChannel(usersSubscription)
     }
   }, [])
 
-  // NOTE: We intentionally do NOT auto-login from localStorage
-  // Users must enter their passcode every time they open the app
+  const loadUsers = async () => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: true })
 
-  // Save users to localStorage when changed
-  useEffect(() => {
-    if (users.length > 0) {
-      localStorage.setItem(USERS_KEY, JSON.stringify(users))
+    if (error) {
+      console.error('Error loading users:', error)
+    } else {
+      setUsers(data || [])
     }
-  }, [users])
+    setIsLoading(false)
+  }
+
+  const loadLeads = async () => {
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error loading leads:', error)
+    } else {
+      // Transform from snake_case to camelCase
+      const transformedLeads = (data || []).map(lead => ({
+        id: lead.id,
+        contactName: lead.contact_name,
+        storeName: lead.store_name,
+        email: lead.email,
+        phone: lead.phone,
+        zipCode: lead.zip_code,
+        city: lead.city,
+        state: lead.state,
+        interests: lead.interests || [],
+        temperature: lead.temperature,
+        notes: lead.notes,
+        voiceNote: lead.voice_note,
+        createdBy: lead.created_by,
+        createdAt: lead.created_at,
+        updatedAt: lead.updated_at
+      }))
+      setLeads(transformedLeads)
+    }
+  }
 
   const verifyPasscode = (userId, passcode) => {
     const user = users.find(u => u.id === userId)
@@ -69,33 +106,155 @@ export function AppProvider({ children }) {
     setView('list')
   }
 
-  const addUser = (name, passcode) => {
-    const newUser = {
-      id: crypto.randomUUID(),
-      name,
-      passcode
+  const addUser = async (name, passcode) => {
+    const { data, error } = await supabase
+      .from('users')
+      .insert([{ name, passcode }])
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error adding user:', error)
+      return null
     }
-    setUsers(prev => [...prev, newUser])
-    return newUser
+
+    setUsers(prev => [...prev, data])
+    return data
   }
 
-  const updateUser = (userId, updates) => {
+  const updateUser = async (userId, updates) => {
+    const { error } = await supabase
+      .from('users')
+      .update(updates)
+      .eq('id', userId)
+
+    if (error) {
+      console.error('Error updating user:', error)
+      return false
+    }
+
     setUsers(prev => prev.map(u =>
       u.id === userId ? { ...u, ...updates } : u
     ))
-    // Update currentUser if it's the one being edited
+
     if (currentUser && currentUser.id === userId) {
       setCurrentUser(prev => ({ ...prev, ...updates }))
     }
+    return true
   }
 
-  const deleteUser = (userId) => {
-    // Prevent deleting if it's the last user
+  const deleteUser = async (userId) => {
     if (users.length <= 1) return false
-    // Prevent deleting current user
     if (currentUser && currentUser.id === userId) return false
 
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', userId)
+
+    if (error) {
+      console.error('Error deleting user:', error)
+      return false
+    }
+
     setUsers(prev => prev.filter(u => u.id !== userId))
+    return true
+  }
+
+  // Leads functions
+  const addLead = async (leadData) => {
+    const dbLead = {
+      contact_name: leadData.contactName,
+      store_name: leadData.storeName,
+      email: leadData.email || null,
+      phone: leadData.phone || null,
+      zip_code: leadData.zipCode || null,
+      city: leadData.city || null,
+      state: leadData.state || null,
+      interests: leadData.interests || [],
+      temperature: leadData.temperature,
+      notes: leadData.notes || null,
+      voice_note: leadData.voiceNote || null,
+      created_by: leadData.createdBy || null
+    }
+
+    const { data, error } = await supabase
+      .from('leads')
+      .insert([dbLead])
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error adding lead:', error)
+      return null
+    }
+
+    const newLead = {
+      id: data.id,
+      contactName: data.contact_name,
+      storeName: data.store_name,
+      email: data.email,
+      phone: data.phone,
+      zipCode: data.zip_code,
+      city: data.city,
+      state: data.state,
+      interests: data.interests || [],
+      temperature: data.temperature,
+      notes: data.notes,
+      voiceNote: data.voice_note,
+      createdBy: data.created_by,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    }
+
+    setLeads(prev => [newLead, ...prev])
+    return newLead
+  }
+
+  const updateLead = async (leadId, updates) => {
+    const dbUpdates = {
+      contact_name: updates.contactName,
+      store_name: updates.storeName,
+      email: updates.email || null,
+      phone: updates.phone || null,
+      zip_code: updates.zipCode || null,
+      city: updates.city || null,
+      state: updates.state || null,
+      interests: updates.interests || [],
+      temperature: updates.temperature,
+      notes: updates.notes || null,
+      voice_note: updates.voiceNote || null,
+      updated_at: new Date().toISOString()
+    }
+
+    const { error } = await supabase
+      .from('leads')
+      .update(dbUpdates)
+      .eq('id', leadId)
+
+    if (error) {
+      console.error('Error updating lead:', error)
+      return false
+    }
+
+    setLeads(prev => prev.map(l =>
+      l.id === leadId ? { ...l, ...updates, updatedAt: dbUpdates.updated_at } : l
+    ))
+    return true
+  }
+
+  const deleteLead = async (leadId) => {
+    const { error } = await supabase
+      .from('leads')
+      .delete()
+      .eq('id', leadId)
+
+    if (error) {
+      console.error('Error deleting lead:', error)
+      return false
+    }
+
+    setLeads(prev => prev.filter(l => l.id !== leadId))
     return true
   }
 
@@ -109,24 +268,28 @@ export function AppProvider({ children }) {
     setView('list')
   }
 
-  // Enhanced stats
+  const getStats = () => {
+    return {
+      total: leads.length,
+      hot: leads.filter(l => l.temperature === 'hot').length,
+      warm: leads.filter(l => l.temperature === 'warm').length,
+      browsing: leads.filter(l => l.temperature === 'browsing').length
+    }
+  }
+
   const getDetailedStats = () => {
-    const leads = leadsHook.leads
     const total = leads.length
 
-    // Temperature stats
     const hot = leads.filter(l => l.temperature === 'hot').length
     const warm = leads.filter(l => l.temperature === 'warm').length
     const browsing = leads.filter(l => l.temperature === 'browsing').length
 
-    // Interest/Account type stats
     const newAccount = leads.filter(l => l.interests?.includes('New Account')).length
     const reorder = leads.filter(l => l.interests?.includes('Reorder')).length
     const ss26 = leads.filter(l => l.interests?.includes('SS26')).length
     const f26 = leads.filter(l => l.interests?.includes('F26')).length
     const core = leads.filter(l => l.interests?.includes('Core')).length
 
-    // State stats
     const stateCount = {}
     leads.forEach(l => {
       if (l.state) {
@@ -141,7 +304,6 @@ export function AppProvider({ children }) {
       }))
       .sort((a, b) => b.count - a.count)
 
-    // City stats
     const cityCount = {}
     leads.forEach(l => {
       if (l.city) {
@@ -157,7 +319,6 @@ export function AppProvider({ children }) {
       }))
       .sort((a, b) => b.count - a.count)
 
-    // Staff stats
     const staffCount = {}
     leads.forEach(l => {
       if (l.createdBy) {
@@ -180,6 +341,45 @@ export function AppProvider({ children }) {
       byCity: cityStats,
       byStaff: staffStats
     }
+  }
+
+  const getFilteredLeads = () => {
+    if (filter === 'all') return leads
+    return leads.filter(l => l.temperature === filter)
+  }
+
+  const exportToCSV = () => {
+    if (leads.length === 0) return null
+
+    const headers = ['Contact Name', 'Store Name', 'Email', 'Phone', 'City', 'State', 'ZIP', 'Temperature', 'Interests', 'Notes', 'Created By', 'Created At']
+    const rows = leads.map(l => [
+      l.contactName,
+      l.storeName,
+      l.email || '',
+      l.phone || '',
+      l.city || '',
+      l.state || '',
+      l.zipCode || '',
+      l.temperature,
+      (l.interests || []).join('; '),
+      l.notes || '',
+      l.createdBy || '',
+      new Date(l.createdAt).toLocaleString()
+    ])
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `stone-rose-leads-${new Date().toISOString().split('T')[0]}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+
+    return link.download
   }
 
   const value = {
@@ -205,10 +405,19 @@ export function AppProvider({ children }) {
     setFilter,
 
     // Stats
+    getStats,
     getDetailedStats,
 
     // Leads
-    ...leadsHook
+    leads,
+    addLead,
+    updateLead,
+    deleteLead,
+    getFilteredLeads,
+    exportToCSV,
+
+    // Loading state
+    isLoading
   }
 
   return (
