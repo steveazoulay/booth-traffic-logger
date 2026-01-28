@@ -36,3 +36,18 @@ Thumbs.db
 *.local
 
 .vercel
+
+# Claude Code
+.claude/
+.playwright-mcp/
+
+# Design files
+*.ai
+*.psd
+
+# Test files
+scan ocr.jpeg
+nul
+
+# Large images
+High Res Wordmark and Logo.png
