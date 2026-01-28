@@ -9,9 +9,9 @@ import { UserManagement } from './components/UserManagement'
 import { StatsPanel } from './components/StatsPanel'
 
 function AppContent() {
-  const { currentUser, view, isLoaded, users } = useApp()
+  const { currentUser, view, isLoading, users } = useApp()
 
-  if (!isLoaded || users.length === 0) {
+  if (isLoading || users.length === 0) {
     return (
       <div className="app loading-screen">
         <div className="loading-content">
