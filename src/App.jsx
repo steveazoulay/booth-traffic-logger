@@ -8,6 +8,7 @@ import { UserSelect } from './components/UserSelect'
 import { UserManagement } from './components/UserManagement'
 import { StatsPanel } from './components/StatsPanel'
 import { ShowSelect } from './components/ShowSelect'
+import { ComparativeDashboard } from './components/ComparativeDashboard'
 
 function AppContent() {
   const { currentShow, currentUser, view, isLoading, users } = useApp()
@@ -69,6 +70,20 @@ function AppContent() {
         <main className="main-content">
           <div className="content-area">
             <StatsPanel />
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  // Comparative Dashboard view
+  if (view === 'compare') {
+    return (
+      <div className="app">
+        <Header />
+        <main className="main-content">
+          <div className="content-area">
+            <ComparativeDashboard />
           </div>
         </main>
       </div>

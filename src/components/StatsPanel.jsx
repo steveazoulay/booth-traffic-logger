@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
-import { TrendingUp, MapPin, Building, Tag, Users, ChevronDown, ChevronUp, BarChart3, Map } from 'lucide-react'
+import { TrendingUp, MapPin, Building, Tag, Users, ChevronDown, ChevronUp, BarChart3, Map, GitCompare } from 'lucide-react'
 import { Charts } from './Charts'
 import { LeadsHeatmap } from './LeadsHeatmap'
 
@@ -30,7 +30,16 @@ export function StatsPanel() {
 
   return (
     <div className="stats-panel">
-      <h2 className="stats-panel-title">Analytics Dashboard</h2>
+      <div className="stats-panel-header">
+        <h2 className="stats-panel-title">Analytics Dashboard</h2>
+        <button
+          className="compare-btn"
+          onClick={() => setView('compare')}
+        >
+          <GitCompare size={18} />
+          <span>Compare Shows</span>
+        </button>
+      </div>
 
       {/* Summary Cards */}
       <div className="stats-summary">
