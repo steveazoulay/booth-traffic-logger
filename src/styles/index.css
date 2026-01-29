@@ -2795,3 +2795,34 @@ button {
   }
 }
 
+/* ========================================
+   FOLLOW-UP TAGS
+   ======================================== */
+
+.tag-btn-colored {
+  transition: all 0.15s;
+}
+
+.tag-btn-colored.selected {
+  color: var(--white);
+  border-color: transparent;
+}
+
+.follow-up-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+.follow-up-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--white);
+  letter-spacing: 0.02em;
+}
+

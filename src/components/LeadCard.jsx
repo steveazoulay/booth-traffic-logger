@@ -11,6 +11,14 @@ const temperatureConfig = {
   browsing: { icon: Eye, label: 'Just Browsing', emoji: '' }
 }
 
+const tagConfig = {
+  'follow-up-urgent': { label: 'Follow-up Urgent', color: '#E85D5D' },
+  'send-catalog': { label: 'Send Catalog', color: '#3B82F6' },
+  'call-back': { label: 'Call Back', color: '#F5A623' },
+  'demo-requested': { label: 'Demo Requested', color: '#8B5CF6' },
+  'qualified-prospect': { label: 'Qualified Prospect', color: '#10B981' }
+}
+
 export function LeadCard({ lead }) {
   const { startEdit, deleteLead } = useApp()
   const [showActions, setShowActions] = useState(false)
@@ -109,6 +117,23 @@ export function LeadCard({ lead }) {
                 {interest}
               </span>
             ))}
+          </div>
+        )}
+
+        {lead.tags && lead.tags.length > 0 && (
+          <div className="follow-up-tags">
+            {lead.tags.map(tag => {
+              const config = tagConfig[tag]
+              return config ? (
+                <span
+                  key={tag}
+                  className="follow-up-tag"
+                  style={{ backgroundColor: config.color }}
+                >
+                  {config.label}
+                </span>
+              ) : null
+            })}
           </div>
         )}
 

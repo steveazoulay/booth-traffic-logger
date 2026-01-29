@@ -6,6 +6,14 @@ import { BusinessCardScanner } from './BusinessCardScanner'
 
 const INTEREST_OPTIONS = ['SS26', 'F26', 'Core', 'Reorder', 'New Account']
 
+const TAG_OPTIONS = [
+  { value: 'follow-up-urgent', label: 'Follow-up Urgent', color: '#E85D5D' },
+  { value: 'send-catalog', label: 'Send Catalog', color: '#3B82F6' },
+  { value: 'call-back', label: 'Call Back', color: '#F5A623' },
+  { value: 'demo-requested', label: 'Demo Requested', color: '#8B5CF6' },
+  { value: 'qualified-prospect', label: 'Qualified Prospect', color: '#10B981' }
+]
+
 const TEMPERATURE_OPTIONS = [
   { value: 'hot', label: 'HOT LEAD', emoji: '🔥' },
   { value: 'warm', label: 'WARM', emoji: '☀️' },
@@ -24,6 +32,7 @@ export function LeadForm() {
     city: '',
     state: '',
     interests: [],
+    tags: [],
     temperature: '',
     notes: '',
     voiceNote: null
@@ -96,6 +105,7 @@ export function LeadForm() {
         city: editingLead.city || '',
         state: editingLead.state || '',
         interests: editingLead.interests || [],
+        tags: editingLead.tags || [],
         temperature: editingLead.temperature || '',
         notes: editingLead.notes || '',
         voiceNote: editingLead.voiceNote || null
@@ -110,6 +120,7 @@ export function LeadForm() {
         city: '',
         state: '',
         interests: [],
+        tags: [],
         temperature: '',
         notes: '',
         voiceNote: null
@@ -132,6 +143,15 @@ export function LeadForm() {
       interests: prev.interests.includes(interest)
         ? prev.interests.filter(i => i !== interest)
         : [...prev.interests, interest]
+    }))
+  }
+
+  const toggleTag = (tag) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.includes(tag)
+        ? prev.tags.filter(t => t !== tag)
+        : [...prev.tags, tag]
     }))
   }
 
@@ -228,6 +248,7 @@ export function LeadForm() {
         city: formData.city,
         state: formData.state,
         interests: formData.interests,
+        tags: formData.tags,
         temperature: formData.temperature,
         notes: formData.notes,
         voiceNote: formData.voiceNote
@@ -252,6 +273,7 @@ export function LeadForm() {
         city: '',
         state: '',
         interests: [],
+        tags: [],
         temperature: '',
         notes: '',
         voiceNote: null
@@ -400,6 +422,24 @@ export function LeadForm() {
                 onClick={() => toggleInterest(interest)}
               >
                 {interest}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Follow-up Tags - Full width */}
+        <div className="form-group form-group-full">
+          <label className="form-label">FOLLOW-UP TAGS</label>
+          <div className="tags-grid">
+            {TAG_OPTIONS.map(tag => (
+              <button
+                key={tag.value}
+                type="button"
+                className={`tag-btn tag-btn-colored ${formData.tags.includes(tag.value) ? 'selected' : ''}`}
+                style={formData.tags.includes(tag.value) ? { backgroundColor: tag.color, borderColor: tag.color } : {}}
+                onClick={() => toggleTag(tag.value)}
+              >
+                {tag.label}
               </button>
             ))}
           </div>
