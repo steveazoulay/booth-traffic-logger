@@ -339,9 +339,12 @@ export function AppProvider({ children }) {
 
     if (error) {
       console.error('Error updating user:', error)
+      console.error('Update attempted with:', { userId, updates })
       skipUserReloadRef.current = false // Reset flag on error
       return false
     }
+
+    console.log('User updated successfully:', data)
 
     // Use the data returned from server to ensure consistency
     const serverUpdatedUser = data

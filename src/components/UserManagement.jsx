@@ -38,7 +38,7 @@ export function UserManagement() {
     setError('')
   }
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editName.trim()) {
       setError('Name is required')
       return
@@ -48,7 +48,11 @@ export function UserManagement() {
       return
     }
 
-    updateUser(editingId, { name: editName.trim(), passcode: editPasscode })
+    const success = await updateUser(editingId, { name: editName.trim(), passcode: editPasscode })
+    if (!success) {
+      setError('Failed to update user. Please try again.')
+      return
+    }
     setEditingId(null)
     setEditName('')
     setEditPasscode('')
