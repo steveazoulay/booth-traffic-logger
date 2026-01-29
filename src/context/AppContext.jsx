@@ -32,6 +32,9 @@ export function AppProvider({ children }) {
   const [isSyncing, setIsSyncing] = useState(false)
   const syncTimeoutRef = useRef(null)
 
+  // Flag to skip subscription reload after manual update
+  const skipUserReloadRef = useRef(false)
+
   // Track online/offline status
   useEffect(() => {
     const handleOnline = () => {
@@ -241,6 +244,11 @@ export function AppProvider({ children }) {
     const usersSubscription = supabase
       .channel('users_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
+        // Skip reload if we just updated manually (to avoid race condition)
+        if (skipUserReloadRef.current) {
+          skipUserReloadRef.current = false
+          return
+        }
         loadUsers()
       })
       .subscribe()
@@ -289,24 +297,33 @@ export function AppProvider({ children }) {
   }
 
   const updateUser = async (userId, updates) => {
-    const { error } = await supabase
+    // Set flag to skip real-time subscription reload (prevents race condition)
+    skipUserReloadRef.current = true
+
+    // Use .select() to get the updated data back from server
+    const { data, error } = await supabase
       .from('users')
       .update(updates)
       .eq('id', userId)
+      .select()
+      .single()
 
     if (error) {
       console.error('Error updating user:', error)
+      skipUserReloadRef.current = false // Reset flag on error
       return false
     }
 
+    // Use the data returned from server to ensure consistency
+    const serverUpdatedUser = data
     const updatedUsers = users.map(u =>
-      u.id === userId ? { ...u, ...updates } : u
+      u.id === userId ? serverUpdatedUser : u
     )
     setUsers(updatedUsers)
     await saveUsersLocally(updatedUsers, currentShow)
 
     if (currentUser && currentUser.id === userId) {
-      setCurrentUser(prev => ({ ...prev, ...updates }))
+      setCurrentUser(serverUpdatedUser)
     }
     return true
   }
