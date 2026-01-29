@@ -4,14 +4,14 @@ import { MapPin } from 'lucide-react'
 
 const SHOWS = [
   {
-    id: 'chicago',
+    id: '5033fe6c-9427-455e-926b-d4d462eb72f6',
     name: 'Chicago Collective',
     location: 'Chicago, USA',
     badge: 'CHICAGO 2026',
     flag: '🇺🇸'
   },
   {
-    id: 'vancouver',
+    id: 'vancouver-2026',
     name: 'Metro Show',
     location: 'Vancouver, Canada',
     badge: 'VANCOUVER 2026',
