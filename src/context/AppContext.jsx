@@ -709,6 +709,13 @@ export function AppProvider({ children }) {
     return link.download
   }
 
+  // Manual refresh function for when real-time sync doesn't work
+  const refreshData = async () => {
+    if (!currentShow) return
+    console.log('Manual refresh triggered')
+    await Promise.all([loadLeads(), loadUsers()])
+  }
+
   const value = {
     // Show selection
     currentShow,
@@ -755,7 +762,10 @@ export function AppProvider({ children }) {
     isOffline,
     pendingSyncCount,
     isSyncing,
-    syncPendingChanges
+    syncPendingChanges,
+
+    // Manual refresh
+    refreshData
   }
 
   return (

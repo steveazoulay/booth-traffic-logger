@@ -212,6 +212,7 @@ export function LeadForm() {
       state: scannedData.state || prev.state
     }))
     setShowScanner(false)
+    setShowQRScanner(false)
   }
 
   const validate = () => {

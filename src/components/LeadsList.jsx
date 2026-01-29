@@ -1,10 +1,17 @@
 import React, { useState, useMemo } from 'react'
 import { useApp } from '../context/AppContext'
 import { LeadCard } from './LeadCard'
-import { Search, Inbox, Filter, X } from 'lucide-react'
+import { Search, Inbox, Filter, X, RefreshCw } from 'lucide-react'
 
 export function LeadsList() {
-  const { leads } = useApp()
+  const { leads, refreshData } = useApp()
+  const [isRefreshing, setIsRefreshing] = useState(false)
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    await refreshData()
+    setTimeout(() => setIsRefreshing(false), 500)
+  }
   const [searchQuery, setSearchQuery] = useState('')
   const [tempFilter, setTempFilter] = useState('all')
   const [stateFilter, setStateFilter] = useState('all')
@@ -68,8 +75,18 @@ export function LeadsList() {
   return (
     <div className="leads-list">
       <div className="list-header">
-        <h2 className="list-title">All Leads</h2>
-        <span className="list-count">{filteredLeads.length} of {leads.length}</span>
+        <div className="list-header-left">
+          <h2 className="list-title">All Leads</h2>
+          <span className="list-count">{filteredLeads.length} of {leads.length}</span>
+        </div>
+        <button
+          className={`refresh-btn ${isRefreshing ? 'refreshing' : ''}`}
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          title="Refresh leads"
+        >
+          <RefreshCw size={18} />
+        </button>
       </div>
 
       <div className="search-filter-row">
