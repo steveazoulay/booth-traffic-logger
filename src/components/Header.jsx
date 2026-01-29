@@ -9,6 +9,11 @@ export function Header() {
 
   const stats = getStats()
 
+  // Permission checks
+  const userName = currentUser?.name?.toLowerCase()
+  const canExport = ['steve', 'melissa', 'shai'].includes(userName)
+  const canManageUsers = userName === 'steve'
+
   const handleLogoClick = () => {
     setView('list')
     setMenuOpen(false)
@@ -96,22 +101,26 @@ export function Header() {
             <span>Analytics Dashboard</span>
           </button>
 
-          <button
-            className="menu-item"
-            onClick={handleExport}
-            disabled={leads.length === 0}
-          >
-            <Download size={18} />
-            <span>Export CSV ({leads.length} leads)</span>
-          </button>
+          {canExport && (
+            <button
+              className="menu-item"
+              onClick={handleExport}
+              disabled={leads.length === 0}
+            >
+              <Download size={18} />
+              <span>Export CSV ({leads.length} leads)</span>
+            </button>
+          )}
 
-          <button
-            className="menu-item"
-            onClick={handleSettingsClick}
-          >
-            <Users size={18} />
-            <span>Manage Users</span>
-          </button>
+          {canManageUsers && (
+            <button
+              className="menu-item"
+              onClick={handleSettingsClick}
+            >
+              <Users size={18} />
+              <span>Manage Users</span>
+            </button>
+          )}
 
           <button
             className="menu-item menu-item-logout"

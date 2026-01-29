@@ -26,8 +26,23 @@ function AppContent() {
     return <UserSelect />
   }
 
-  // Settings view (User Management)
+  // Settings view (User Management) - Only steve can access
   if (view === 'settings') {
+    const canManageUsers = currentUser?.name?.toLowerCase() === 'steve'
+    if (!canManageUsers) {
+      return (
+        <div className="app">
+          <Header />
+          <main className="main-content">
+            <div className="content-area">
+              <div style={{ padding: '2rem', textAlign: 'center' }}>
+                <p>Access restricted to admin only.</p>
+              </div>
+            </div>
+          </main>
+        </div>
+      )
+    }
     return (
       <div className="app">
         <Header />
