@@ -2529,6 +2529,145 @@ button {
   color: var(--cream);
 }
 
+.scan-buttons {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.scan-btn-secondary {
+  background: transparent;
+  border-color: var(--gray-300);
+}
+
+.scan-btn-secondary:hover {
+  background: var(--gray-100);
+  border-color: var(--gray-400);
+  color: var(--gray-700);
+}
+
+/* QR Scanner Styles */
+.qr-scanner-container {
+  position: relative;
+  width: 100%;
+  min-height: 300px;
+}
+
+#qr-reader {
+  width: 100%;
+}
+
+#qr-reader video {
+  width: 100%;
+  border-radius: var(--radius-md);
+}
+
+.qr-scanner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.qr-scanner-frame {
+  width: 220px;
+  height: 220px;
+  border: 3px solid var(--gold);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
+}
+
+.qr-cancel {
+  position: absolute;
+  bottom: var(--space-md);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.scanner-hint {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  text-align: center;
+  margin-top: var(--space-md);
+}
+
+.qr-result {
+  padding: var(--space-md);
+}
+
+.qr-result-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: #ECFDF5;
+  border-radius: var(--radius-md);
+  color: #059669;
+  font-weight: 600;
+  margin-bottom: var(--space-md);
+}
+
+.qr-result-data {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.qr-result-item {
+  display: flex;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--gray-50);
+  border-radius: var(--radius-sm);
+}
+
+.qr-label {
+  font-weight: 600;
+  color: var(--gray-600);
+  min-width: 70px;
+}
+
+.qr-value {
+  color: var(--gray-800);
+}
+
+.qr-result-empty {
+  text-align: center;
+  padding: var(--space-lg);
+  color: var(--gray-500);
+}
+
+.qr-raw-label {
+  font-size: 0.75rem;
+  margin-top: var(--space-md);
+  color: var(--gray-400);
+}
+
+.qr-raw-data {
+  font-family: monospace;
+  font-size: 0.75rem;
+  background: var(--gray-100);
+  padding: var(--space-sm);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  max-height: 80px;
+  margin-top: var(--space-xs);
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.qr-result-actions {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+}
+
 /* ========================================
    LEADS HEATMAP
    ======================================== */

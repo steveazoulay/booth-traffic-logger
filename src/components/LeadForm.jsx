@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useApp } from '../context/AppContext'
-import { Loader2, AlertTriangle, Camera } from 'lucide-react'
+import { Loader2, AlertTriangle, Camera, QrCode } from 'lucide-react'
 import { VoiceRecorder } from './VoiceRecorder'
 import { BusinessCardScanner } from './BusinessCardScanner'
+import { QRBadgeScanner } from './QRBadgeScanner'
 
 const INTEREST_OPTIONS = ['SS26', 'F26', 'Core', 'Reorder', 'New Account']
 
@@ -43,6 +44,7 @@ export function LeadForm() {
   const [isLookingUpZip, setIsLookingUpZip] = useState(false)
   const [zipError, setZipError] = useState('')
   const [showScanner, setShowScanner] = useState(false)
+  const [showQRScanner, setShowQRScanner] = useState(false)
 
   const isEditing = view === 'edit' && editingLead
 
@@ -293,16 +295,33 @@ export function LeadForm() {
       <div className="form-header-row">
         <h2 className="form-title">{isEditing ? 'Edit Visitor' : 'New Visitor'}</h2>
         {!isEditing && (
-          <button
-            type="button"
-            className="scan-btn"
-            onClick={() => setShowScanner(true)}
-          >
-            <Camera size={18} />
-            <span>Scan Card</span>
-          </button>
+          <div className="scan-buttons">
+            <button
+              type="button"
+              className="scan-btn"
+              onClick={() => setShowQRScanner(true)}
+            >
+              <QrCode size={18} />
+              <span>Scan Badge</span>
+            </button>
+            <button
+              type="button"
+              className="scan-btn scan-btn-secondary"
+              onClick={() => setShowScanner(true)}
+            >
+              <Camera size={18} />
+              <span>Scan Card</span>
+            </button>
+          </div>
         )}
       </div>
+
+      {showQRScanner && (
+        <QRBadgeScanner
+          onScanComplete={handleScanComplete}
+          onClose={() => setShowQRScanner(false)}
+        />
+      )}
 
       {showScanner && (
         <BusinessCardScanner
