@@ -12,7 +12,7 @@ const SHOWS = [
   },
   {
     id: 'vancouver',
-    name: 'Metro Show Vancouver',
+    name: 'Metro Show',
     location: 'Vancouver, Canada',
     badge: 'VANCOUVER 2026',
     flag: '🇨🇦'
