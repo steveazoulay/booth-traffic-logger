@@ -443,13 +443,20 @@ export function AppProvider({ children }) {
         show_id: currentShow
       }
 
+      console.log('Saving lead to Supabase with show_id:', currentShow)
       const { data, error } = await supabase
         .from('leads')
         .insert([dbLead])
         .select()
         .single()
 
+      if (error) {
+        console.error('ERROR saving lead to Supabase:', error)
+        alert('Error saving lead: ' + error.message)
+      }
+
       if (!error && data) {
+        console.log('Lead saved successfully:', data.id)
         // Update with real ID from server
         const serverLead = {
           ...newLead,
