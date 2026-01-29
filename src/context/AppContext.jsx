@@ -425,6 +425,9 @@ export function AppProvider({ children }) {
     await addLeadLocally(newLead, currentShow)
 
     // If online, sync to server
+    console.log('navigator.onLine:', navigator.onLine)
+    alert('Online status: ' + navigator.onLine + '\nShow ID: ' + currentShow)
+
     if (navigator.onLine) {
       const dbLead = {
         contact_name: leadData.contactName,
@@ -450,6 +453,8 @@ export function AppProvider({ children }) {
         .select()
         .single()
 
+      alert('Supabase response - Error: ' + JSON.stringify(error) + '\nData: ' + JSON.stringify(data?.id || 'no data'))
+
       if (error) {
         console.error('ERROR saving lead to Supabase:', error)
         alert('Error saving lead: ' + error.message)
@@ -457,6 +462,7 @@ export function AppProvider({ children }) {
 
       if (!error && data) {
         console.log('Lead saved successfully:', data.id)
+        alert('Lead saved with ID: ' + data.id)
         // Update with real ID from server
         const serverLead = {
           ...newLead,
