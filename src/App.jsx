@@ -10,6 +10,7 @@ import { StatsPanel } from './components/StatsPanel'
 import { ShowSelect } from './components/ShowSelect'
 import { ComparativeDashboard } from './components/ComparativeDashboard'
 import { OfflineIndicator } from './components/OfflineIndicator'
+import { ReleaseNotes } from './components/ReleaseNotes'
 
 function AppContent() {
   const { currentShow, currentUser, view, isLoading, users, isOffline, pendingSyncCount, isSyncing } = useApp()
@@ -85,6 +86,35 @@ function AppContent() {
         <main className="main-content">
           <div className="content-area">
             <ComparativeDashboard />
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  // Release Notes view - Only steve can access
+  if (view === 'releases') {
+    const canViewReleases = (currentUser?.name?.toLowerCase() || '').includes('steve')
+    if (!canViewReleases) {
+      return (
+        <div className="app">
+          <Header />
+          <main className="main-content">
+            <div className="content-area">
+              <div style={{ padding: '2rem', textAlign: 'center' }}>
+                <p>Access restricted to admin only.</p>
+              </div>
+            </div>
+          </main>
+        </div>
+      )
+    }
+    return (
+      <div className="app">
+        <Header />
+        <main className="main-content">
+          <div className="content-area">
+            <ReleaseNotes />
           </div>
         </main>
       </div>

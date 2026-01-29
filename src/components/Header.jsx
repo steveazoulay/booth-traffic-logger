@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
-import { LogOut, Download, Settings, X, BarChart3, Users, ArrowLeftRight, FileText } from 'lucide-react'
+import { LogOut, Download, Settings, X, BarChart3, Users, ArrowLeftRight, FileText, Sparkles } from 'lucide-react'
 import { SHOWS } from './ShowSelect'
 import { exportStatsToPDF } from '../utils/exportPDF'
 
@@ -139,13 +139,22 @@ export function Header() {
           )}
 
           {canManageUsers && (
-            <button
-              className="menu-item"
-              onClick={handleSettingsClick}
-            >
-              <Users size={18} />
-              <span>Manage Users</span>
-            </button>
+            <>
+              <button
+                className="menu-item"
+                onClick={handleSettingsClick}
+              >
+                <Users size={18} />
+                <span>Manage Users</span>
+              </button>
+              <button
+                className="menu-item menu-item-releases"
+                onClick={() => { setView('releases'); setMenuOpen(false); }}
+              >
+                <Sparkles size={18} />
+                <span>Release Notes</span>
+              </button>
+            </>
           )}
 
           <button
