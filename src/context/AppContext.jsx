@@ -394,118 +394,59 @@ export function AppProvider({ children }) {
     return true
   }
 
-  // Leads functions with offline support
+  // Leads functions - simplified, direct save to Supabase
   const addLead = async (leadData) => {
-    // Generate temporary ID for offline use
-    const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-
-    const newLead = {
-      id: tempId,
-      contactName: leadData.contactName,
-      storeName: leadData.storeName,
+    const dbLead = {
+      contact_name: leadData.contactName,
+      store_name: leadData.storeName,
       email: leadData.email || null,
       phone: leadData.phone || null,
-      zipCode: leadData.zipCode || null,
+      zip_code: leadData.zipCode || null,
       city: leadData.city || null,
       state: leadData.state || null,
       interests: leadData.interests || [],
       tags: leadData.tags || [],
       temperature: leadData.temperature,
       notes: leadData.notes || null,
-      voiceNote: leadData.voiceNote || null,
-      createdBy: leadData.createdBy || null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      voice_note: leadData.voiceNote || null,
+      created_by: leadData.createdBy || null,
+      show_id: currentShow
     }
 
-    // Add to local state immediately
+    // Save directly to Supabase
+    const { data, error } = await supabase
+      .from('leads')
+      .insert([dbLead])
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error saving lead:', error)
+      alert('Error saving lead: ' + error.message)
+      return null
+    }
+
+    // Transform to camelCase and add to state
+    const newLead = {
+      id: data.id,
+      contactName: data.contact_name,
+      storeName: data.store_name,
+      email: data.email,
+      phone: data.phone,
+      zipCode: data.zip_code,
+      city: data.city,
+      state: data.state,
+      interests: data.interests || [],
+      tags: data.tags || [],
+      temperature: data.temperature,
+      notes: data.notes,
+      voiceNote: data.voice_note,
+      createdBy: data.created_by,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    }
+
     setLeads(prev => [newLead, ...prev])
-
-    // Save to local storage
-    await addLeadLocally(newLead, currentShow)
-
-    // If online, sync to server
-    console.log('navigator.onLine:', navigator.onLine)
-    alert('Online status: ' + navigator.onLine + '\nShow ID: ' + currentShow)
-
-    if (navigator.onLine) {
-      const dbLead = {
-        contact_name: leadData.contactName,
-        store_name: leadData.storeName,
-        email: leadData.email || null,
-        phone: leadData.phone || null,
-        zip_code: leadData.zipCode || null,
-        city: leadData.city || null,
-        state: leadData.state || null,
-        interests: leadData.interests || [],
-        tags: leadData.tags || [],
-        temperature: leadData.temperature,
-        notes: leadData.notes || null,
-        voice_note: leadData.voiceNote || null,
-        created_by: leadData.createdBy || null,
-        show_id: currentShow
-      }
-
-      console.log('Saving lead to Supabase with show_id:', currentShow)
-      const { data, error } = await supabase
-        .from('leads')
-        .insert([dbLead])
-        .select()
-        .single()
-
-      alert('Supabase response - Error: ' + JSON.stringify(error) + '\nData: ' + JSON.stringify(data?.id || 'no data'))
-
-      if (error) {
-        console.error('ERROR saving lead to Supabase:', error)
-        alert('Error saving lead: ' + error.message)
-      }
-
-      if (!error && data) {
-        console.log('Lead saved successfully:', data.id)
-        alert('Lead saved with ID: ' + data.id)
-        // Update with real ID from server
-        const serverLead = {
-          ...newLead,
-          id: data.id,
-          createdAt: data.created_at,
-          updatedAt: data.updated_at
-        }
-
-        setLeads(prev => prev.map(l =>
-          l.id === tempId ? serverLead : l
-        ))
-
-        await deleteLeadLocally(tempId)
-        await addLeadLocally(serverLead, currentShow)
-
-        return serverLead
-      }
-    } else {
-      // Queue for sync when back online
-      await addToSyncQueue({
-        type: 'addLead',
-        showId: currentShow,
-        leadData: newLead,
-        data: {
-          contact_name: leadData.contactName,
-          store_name: leadData.storeName,
-          email: leadData.email || null,
-          phone: leadData.phone || null,
-          zip_code: leadData.zipCode || null,
-          city: leadData.city || null,
-          state: leadData.state || null,
-          interests: leadData.interests || [],
-          tags: leadData.tags || [],
-          temperature: leadData.temperature,
-          notes: leadData.notes || null,
-          voice_note: leadData.voiceNote || null,
-          created_by: leadData.createdBy || null,
-          show_id: currentShow
-        }
-      })
-      await updatePendingCount()
-    }
-
     return newLead
   }
 
