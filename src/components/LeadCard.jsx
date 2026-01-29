@@ -14,9 +14,7 @@ const temperatureConfig = {
 const tagConfig = {
   'follow-up-urgent': { label: 'Follow-up Urgent', color: '#E85D5D' },
   'send-catalog': { label: 'Send Catalog', color: '#3B82F6' },
-  'call-back': { label: 'Call Back', color: '#F5A623' },
-  'demo-requested': { label: 'Demo Requested', color: '#8B5CF6' },
-  'qualified-prospect': { label: 'Qualified Prospect', color: '#10B981' }
+  'call-back': { label: 'Call Back', color: '#F5A623' }
 }
 
 export function LeadCard({ lead }) {
@@ -28,8 +26,11 @@ export function LeadCard({ lead }) {
   const TempIcon = temp.icon
 
   const formatDate = (isoString) => {
+    if (!isoString) return ''
     const date = new Date(isoString)
-    return date.toLocaleDateString('en-US', {
+    if (isNaN(date.getTime())) return ''
+    return date.toLocaleString('en-US', {
+      timeZone: 'America/New_York',
       month: 'short',
       day: 'numeric',
       hour: 'numeric',
@@ -144,7 +145,7 @@ export function LeadCard({ lead }) {
         <div className="card-footer">
           <div className="timestamp">
             <Clock size={14} />
-            <span>{formatDate(lead.timestamp)}</span>
+            <span>{formatDate(lead.createdAt)}</span>
           </div>
           {lead.createdBy && (
             <span className="created-by">by {lead.createdBy}</span>

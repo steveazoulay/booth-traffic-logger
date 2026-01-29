@@ -10,9 +10,7 @@ const INTEREST_OPTIONS = ['SS26', 'F26', 'Core', 'Reorder', 'New Account']
 const TAG_OPTIONS = [
   { value: 'follow-up-urgent', label: 'Follow-up Urgent', color: '#E85D5D' },
   { value: 'send-catalog', label: 'Send Catalog', color: '#3B82F6' },
-  { value: 'call-back', label: 'Call Back', color: '#F5A623' },
-  { value: 'demo-requested', label: 'Demo Requested', color: '#8B5CF6' },
-  { value: 'qualified-prospect', label: 'Qualified Prospect', color: '#10B981' }
+  { value: 'call-back', label: 'Call Back', color: '#F5A623' }
 ]
 
 const TEMPERATURE_OPTIONS = [

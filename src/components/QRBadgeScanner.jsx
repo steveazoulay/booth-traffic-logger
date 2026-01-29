@@ -20,6 +20,16 @@ export function QRBadgeScanner({ onScanComplete, onClose }) {
     setIsScanning(true)
 
     try {
+      // First, explicitly request camera permission
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      })
+      // Stop the stream immediately - we just needed to trigger permission
+      stream.getTracks().forEach(track => track.stop())
+
+      // Small delay to ensure DOM is ready
+      await new Promise(resolve => setTimeout(resolve, 100))
+
       const html5QrCode = new Html5Qrcode("qr-reader")
       html5QrCodeRef.current = html5QrCode
 
@@ -39,7 +49,21 @@ export function QRBadgeScanner({ onScanComplete, onClose }) {
       )
     } catch (err) {
       console.error('QR Scanner error:', err)
-      setError('Could not access camera. Please check permissions.')
+      let errorMessage = 'Could not access camera.'
+
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        errorMessage = 'Camera permission denied. Please allow camera access in your browser settings.'
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        errorMessage = 'No camera found on this device.'
+      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        errorMessage = 'Camera is in use by another app. Please close other apps using the camera.'
+      } else if (err.name === 'OverconstrainedError') {
+        errorMessage = 'Camera does not meet requirements. Try using the front camera.'
+      } else if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        errorMessage = 'Camera not supported. Make sure you are using HTTPS.'
+      }
+
+      setError(errorMessage)
       setIsScanning(false)
     }
   }

@@ -234,26 +234,55 @@ export function AppProvider({ children }) {
     // Only subscribe to real-time changes if online
     if (!navigator.onLine) return
 
+    // Use unique channel names per show to avoid conflicts
+    const leadsChannelName = `leads_changes_${currentShow}`
+    const usersChannelName = `users_changes_${currentShow}`
+
     const leadsSubscription = supabase
-      .channel('leads_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
-        loadLeads()
+      .channel(leadsChannelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'leads',
+          filter: `show_id=eq.${currentShow}`
+        },
+        (payload) => {
+          console.log('Lead change detected:', payload)
+          loadLeads()
+        }
+      )
+      .subscribe((status) => {
+        console.log('Leads subscription status:', status)
       })
-      .subscribe()
 
     const usersSubscription = supabase
-      .channel('users_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
-        // Skip reload if we just updated manually (to avoid race condition)
-        if (skipUserReloadRef.current) {
-          skipUserReloadRef.current = false
-          return
+      .channel(usersChannelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'users',
+          filter: `show_id=eq.${currentShow}`
+        },
+        (payload) => {
+          // Skip reload if we just updated manually (to avoid race condition)
+          if (skipUserReloadRef.current) {
+            skipUserReloadRef.current = false
+            return
+          }
+          console.log('User change detected:', payload)
+          loadUsers()
         }
-        loadUsers()
+      )
+      .subscribe((status) => {
+        console.log('Users subscription status:', status)
       })
-      .subscribe()
 
     return () => {
+      console.log('Cleaning up subscriptions for show:', currentShow)
       supabase.removeChannel(leadsSubscription)
       supabase.removeChannel(usersSubscription)
     }
