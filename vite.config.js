@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'Stone Rose Booth Logger',
-        short_name: 'StoneRose',
+        name: 'Show Leads',
+        short_name: 'Show Leads',
         description: 'Lead tracking for Stone Rose at Chicago Collective 2026',
         theme_color: '#1B2A4A',
         background_color: '#FAF8F5',
