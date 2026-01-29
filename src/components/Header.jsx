@@ -1,12 +1,14 @@
 import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
-import { LogOut, Download, Settings, X, BarChart3, Users, ArrowLeftRight } from 'lucide-react'
+import { LogOut, Download, Settings, X, BarChart3, Users, ArrowLeftRight, FileText } from 'lucide-react'
 import { SHOWS } from './ShowSelect'
+import { exportStatsToPDF } from '../utils/exportPDF'
 
 export function Header() {
-  const { currentShow, currentUser, logout, exitShow, exportToCSV, leads, getStats, setView } = useApp()
+  const { currentShow, currentUser, logout, exitShow, exportToCSV, leads, getStats, getDetailedStats, setView } = useApp()
   const [menuOpen, setMenuOpen] = useState(false)
   const [exportSuccess, setExportSuccess] = useState(false)
+  const [exportMessage, setExportMessage] = useState('CSV exported successfully!')
 
   const stats = getStats()
   const showInfo = SHOWS.find(s => s.id === currentShow)
@@ -24,6 +26,18 @@ export function Header() {
   const handleExport = () => {
     const filename = exportToCSV()
     if (filename) {
+      setExportMessage('CSV exported successfully!')
+      setExportSuccess(true)
+      setTimeout(() => setExportSuccess(false), 2000)
+    }
+    setMenuOpen(false)
+  }
+
+  const handleExportPDF = () => {
+    const detailedStats = getDetailedStats()
+    const filename = exportStatsToPDF(leads, showInfo?.name || 'Show', detailedStats)
+    if (filename) {
+      setExportMessage('PDF report exported!')
       setExportSuccess(true)
       setTimeout(() => setExportSuccess(false), 2000)
     }
@@ -104,14 +118,24 @@ export function Header() {
           </button>
 
           {canExport && (
-            <button
-              className="menu-item"
-              onClick={handleExport}
-              disabled={leads.length === 0}
-            >
-              <Download size={18} />
-              <span>Export CSV ({leads.length} leads)</span>
-            </button>
+            <>
+              <button
+                className="menu-item"
+                onClick={handleExport}
+                disabled={leads.length === 0}
+              >
+                <Download size={18} />
+                <span>Export CSV ({leads.length} leads)</span>
+              </button>
+              <button
+                className="menu-item"
+                onClick={handleExportPDF}
+                disabled={leads.length === 0}
+              >
+                <FileText size={18} />
+                <span>Export PDF Report</span>
+              </button>
+            </>
           )}
 
           {canManageUsers && (
@@ -144,7 +168,7 @@ export function Header() {
 
       {exportSuccess && (
         <div className="export-toast">
-          CSV exported successfully!
+          {exportMessage}
         </div>
       )}
     </header>
