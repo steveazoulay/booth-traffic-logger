@@ -14,6 +14,7 @@
     "firebase": "^10.7.1",
     "framer-motion": "^10.16.16",
     "html5-qrcode": "^2.3.8",
+    "idb": "^8.0.3",
     "jspdf": "^4.0.0",
     "jspdf-autotable": "^5.0.7",
     "leaflet": "^1.9.4",

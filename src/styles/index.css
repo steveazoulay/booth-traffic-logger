@@ -1007,6 +1007,56 @@ button {
 }
 
 /* ========================================
+   OFFLINE INDICATOR
+   ======================================== */
+
+.offline-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+
+.offline-indicator.offline {
+  background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+  color: #991B1B;
+  border-bottom: 1px solid #FECACA;
+}
+
+.offline-indicator.syncing {
+  background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+  color: #1E40AF;
+  border-bottom: 1px solid #BFDBFE;
+}
+
+.offline-indicator svg {
+  flex-shrink: 0;
+}
+
+.syncing-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.pending-badge {
+  background: rgba(153, 27, 27, 0.15);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ========================================
    RESPONSIVE
    ======================================== */
 

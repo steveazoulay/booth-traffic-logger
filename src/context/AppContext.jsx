@@ -1,5 +1,18 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
+import {
+  saveLeadsLocally,
+  getLeadsLocally,
+  addLeadLocally,
+  updateLeadLocally,
+  deleteLeadLocally,
+  saveUsersLocally,
+  getUsersLocally,
+  addToSyncQueue,
+  getSyncQueue,
+  removeSyncQueueItem,
+  setLastSyncTime
+} from '../lib/offlineStorage'
 
 const AppContext = createContext(null)
 
@@ -12,6 +25,43 @@ export function AppProvider({ children }) {
   const [editingLead, setEditingLead] = useState(null)
   const [filter, setFilter] = useState('all')
   const [isLoading, setIsLoading] = useState(true)
+
+  // Offline state
+  const [isOffline, setIsOffline] = useState(!navigator.onLine)
+  const [pendingSyncCount, setPendingSyncCount] = useState(0)
+  const [isSyncing, setIsSyncing] = useState(false)
+  const syncTimeoutRef = useRef(null)
+
+  // Track online/offline status
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOffline(false)
+      // Trigger sync when coming back online
+      syncPendingChanges()
+    }
+
+    const handleOffline = () => {
+      setIsOffline(true)
+    }
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [currentShow])
+
+  // Update pending sync count
+  const updatePendingCount = useCallback(async () => {
+    const queue = await getSyncQueue()
+    setPendingSyncCount(queue.length)
+  }, [])
+
+  useEffect(() => {
+    updatePendingCount()
+  }, [updatePendingCount])
 
   const selectShow = (showId) => {
     setCurrentShow(showId)
@@ -28,20 +78,159 @@ export function AppProvider({ children }) {
     setView('list')
   }
 
-  // Load users from Supabase when show is selected
+  // Sync pending changes to server
+  const syncPendingChanges = useCallback(async () => {
+    if (isSyncing || isOffline) return
+
+    const queue = await getSyncQueue()
+    if (queue.length === 0) return
+
+    setIsSyncing(true)
+
+    for (const item of queue) {
+      try {
+        if (item.type === 'addLead') {
+          const { data, error } = await supabase
+            .from('leads')
+            .insert([item.data])
+            .select()
+            .single()
+
+          if (!error) {
+            // Update local ID with server ID
+            await updateLeadLocally({
+              ...item.leadData,
+              id: data.id
+            }, item.showId)
+          }
+        } else if (item.type === 'updateLead') {
+          await supabase
+            .from('leads')
+            .update(item.data)
+            .eq('id', item.leadId)
+        } else if (item.type === 'deleteLead') {
+          await supabase
+            .from('leads')
+            .delete()
+            .eq('id', item.leadId)
+        }
+
+        await removeSyncQueueItem(item.id)
+      } catch (error) {
+        console.error('Sync error:', error)
+        // Keep item in queue for retry
+        break
+      }
+    }
+
+    await updatePendingCount()
+    setIsSyncing(false)
+
+    // Reload data after sync
+    if (currentShow) {
+      loadLeads()
+    }
+  }, [isSyncing, isOffline, currentShow, updatePendingCount])
+
+  // Load users - try cache first, then server
+  const loadUsers = async () => {
+    if (!currentShow) return
+
+    // Try loading from cache first for instant display
+    try {
+      const cachedUsers = await getUsersLocally(currentShow)
+      if (cachedUsers.length > 0) {
+        setUsers(cachedUsers)
+        setIsLoading(false)
+      }
+    } catch (e) {
+      console.error('Error loading cached users:', e)
+    }
+
+    // If online, fetch from server
+    if (navigator.onLine) {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('show_id', currentShow)
+        .order('created_at', { ascending: true })
+
+      if (!error && data) {
+        setUsers(data)
+        // Save to cache
+        await saveUsersLocally(data, currentShow)
+      }
+    }
+
+    setIsLoading(false)
+  }
+
+  // Load leads - try cache first, then server
+  const loadLeads = async () => {
+    if (!currentShow) return
+
+    // Try loading from cache first
+    try {
+      const cachedLeads = await getLeadsLocally(currentShow)
+      if (cachedLeads.length > 0) {
+        setLeads(cachedLeads)
+      }
+    } catch (e) {
+      console.error('Error loading cached leads:', e)
+    }
+
+    // If online, fetch from server
+    if (navigator.onLine) {
+      const { data, error } = await supabase
+        .from('leads')
+        .select('*')
+        .eq('show_id', currentShow)
+        .order('created_at', { ascending: false })
+
+      if (!error && data) {
+        // Transform from snake_case to camelCase
+        const transformedLeads = data.map(lead => ({
+          id: lead.id,
+          contactName: lead.contact_name,
+          storeName: lead.store_name,
+          email: lead.email,
+          phone: lead.phone,
+          zipCode: lead.zip_code,
+          city: lead.city,
+          state: lead.state,
+          interests: lead.interests || [],
+          tags: lead.tags || [],
+          temperature: lead.temperature,
+          notes: lead.notes,
+          voiceNote: lead.voice_note,
+          createdBy: lead.created_by,
+          createdAt: lead.created_at,
+          updatedAt: lead.updated_at
+        }))
+        setLeads(transformedLeads)
+        // Save to cache
+        await saveLeadsLocally(transformedLeads, currentShow)
+        await setLastSyncTime(currentShow)
+      }
+    }
+  }
+
+  // Load users when show is selected
   useEffect(() => {
     if (currentShow) {
       loadUsers()
     }
   }, [currentShow])
 
-  // Load leads from Supabase when show is selected
+  // Load leads and set up real-time subscription when show is selected
   useEffect(() => {
     if (!currentShow) return
 
     loadLeads()
 
-    // Subscribe to real-time changes
+    // Only subscribe to real-time changes if online
+    if (!navigator.onLine) return
+
     const leadsSubscription = supabase
       .channel('leads_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
@@ -61,58 +250,6 @@ export function AppProvider({ children }) {
       supabase.removeChannel(usersSubscription)
     }
   }, [currentShow])
-
-  const loadUsers = async () => {
-    if (!currentShow) return
-
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('show_id', currentShow)
-      .order('created_at', { ascending: true })
-
-    if (error) {
-      console.error('Error loading users:', error)
-    } else {
-      setUsers(data || [])
-    }
-    setIsLoading(false)
-  }
-
-  const loadLeads = async () => {
-    if (!currentShow) return
-
-    const { data, error } = await supabase
-      .from('leads')
-      .select('*')
-      .eq('show_id', currentShow)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error loading leads:', error)
-    } else {
-      // Transform from snake_case to camelCase
-      const transformedLeads = (data || []).map(lead => ({
-        id: lead.id,
-        contactName: lead.contact_name,
-        storeName: lead.store_name,
-        email: lead.email,
-        phone: lead.phone,
-        zipCode: lead.zip_code,
-        city: lead.city,
-        state: lead.state,
-        interests: lead.interests || [],
-        tags: lead.tags || [],
-        temperature: lead.temperature,
-        notes: lead.notes,
-        voiceNote: lead.voice_note,
-        createdBy: lead.created_by,
-        createdAt: lead.created_at,
-        updatedAt: lead.updated_at
-      }))
-      setLeads(transformedLeads)
-    }
-  }
 
   const verifyPasscode = (userId, passcode) => {
     const user = users.find(u => u.id === userId)
@@ -146,6 +283,8 @@ export function AppProvider({ children }) {
     }
 
     setUsers(prev => [...prev, data])
+    // Update cache
+    await saveUsersLocally([...users, data], currentShow)
     return data
   }
 
@@ -160,9 +299,11 @@ export function AppProvider({ children }) {
       return false
     }
 
-    setUsers(prev => prev.map(u =>
+    const updatedUsers = users.map(u =>
       u.id === userId ? { ...u, ...updates } : u
-    ))
+    )
+    setUsers(updatedUsers)
+    await saveUsersLocally(updatedUsers, currentShow)
 
     if (currentUser && currentUser.id === userId) {
       setCurrentUser(prev => ({ ...prev, ...updates }))
@@ -184,108 +325,214 @@ export function AppProvider({ children }) {
       return false
     }
 
-    setUsers(prev => prev.filter(u => u.id !== userId))
+    const updatedUsers = users.filter(u => u.id !== userId)
+    setUsers(updatedUsers)
+    await saveUsersLocally(updatedUsers, currentShow)
     return true
   }
 
-  // Leads functions
+  // Leads functions with offline support
   const addLead = async (leadData) => {
-    const dbLead = {
-      contact_name: leadData.contactName,
-      store_name: leadData.storeName,
+    // Generate temporary ID for offline use
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+    const newLead = {
+      id: tempId,
+      contactName: leadData.contactName,
+      storeName: leadData.storeName,
       email: leadData.email || null,
       phone: leadData.phone || null,
-      zip_code: leadData.zipCode || null,
+      zipCode: leadData.zipCode || null,
       city: leadData.city || null,
       state: leadData.state || null,
       interests: leadData.interests || [],
       tags: leadData.tags || [],
       temperature: leadData.temperature,
       notes: leadData.notes || null,
-      voice_note: leadData.voiceNote || null,
-      created_by: leadData.createdBy || null,
-      show_id: currentShow
+      voiceNote: leadData.voiceNote || null,
+      createdBy: leadData.createdBy || null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     }
 
-    const { data, error } = await supabase
-      .from('leads')
-      .insert([dbLead])
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error adding lead:', error)
-      return null
-    }
-
-    const newLead = {
-      id: data.id,
-      contactName: data.contact_name,
-      storeName: data.store_name,
-      email: data.email,
-      phone: data.phone,
-      zipCode: data.zip_code,
-      city: data.city,
-      state: data.state,
-      interests: data.interests || [],
-      tags: data.tags || [],
-      temperature: data.temperature,
-      notes: data.notes,
-      voiceNote: data.voice_note,
-      createdBy: data.created_by,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
-    }
-
+    // Add to local state immediately
     setLeads(prev => [newLead, ...prev])
+
+    // Save to local storage
+    await addLeadLocally(newLead, currentShow)
+
+    // If online, sync to server
+    if (navigator.onLine) {
+      const dbLead = {
+        contact_name: leadData.contactName,
+        store_name: leadData.storeName,
+        email: leadData.email || null,
+        phone: leadData.phone || null,
+        zip_code: leadData.zipCode || null,
+        city: leadData.city || null,
+        state: leadData.state || null,
+        interests: leadData.interests || [],
+        tags: leadData.tags || [],
+        temperature: leadData.temperature,
+        notes: leadData.notes || null,
+        voice_note: leadData.voiceNote || null,
+        created_by: leadData.createdBy || null,
+        show_id: currentShow
+      }
+
+      const { data, error } = await supabase
+        .from('leads')
+        .insert([dbLead])
+        .select()
+        .single()
+
+      if (!error && data) {
+        // Update with real ID from server
+        const serverLead = {
+          ...newLead,
+          id: data.id,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at
+        }
+
+        setLeads(prev => prev.map(l =>
+          l.id === tempId ? serverLead : l
+        ))
+
+        await deleteLeadLocally(tempId)
+        await addLeadLocally(serverLead, currentShow)
+
+        return serverLead
+      }
+    } else {
+      // Queue for sync when back online
+      await addToSyncQueue({
+        type: 'addLead',
+        showId: currentShow,
+        leadData: newLead,
+        data: {
+          contact_name: leadData.contactName,
+          store_name: leadData.storeName,
+          email: leadData.email || null,
+          phone: leadData.phone || null,
+          zip_code: leadData.zipCode || null,
+          city: leadData.city || null,
+          state: leadData.state || null,
+          interests: leadData.interests || [],
+          tags: leadData.tags || [],
+          temperature: leadData.temperature,
+          notes: leadData.notes || null,
+          voice_note: leadData.voiceNote || null,
+          created_by: leadData.createdBy || null,
+          show_id: currentShow
+        }
+      })
+      await updatePendingCount()
+    }
+
     return newLead
   }
 
   const updateLead = async (leadId, updates) => {
-    const dbUpdates = {
-      contact_name: updates.contactName,
-      store_name: updates.storeName,
-      email: updates.email || null,
-      phone: updates.phone || null,
-      zip_code: updates.zipCode || null,
-      city: updates.city || null,
-      state: updates.state || null,
-      interests: updates.interests || [],
-      tags: updates.tags || [],
-      temperature: updates.temperature,
-      notes: updates.notes || null,
-      voice_note: updates.voiceNote || null,
-      updated_at: new Date().toISOString()
+    const updatedLead = {
+      ...leads.find(l => l.id === leadId),
+      ...updates,
+      updatedAt: new Date().toISOString()
     }
 
-    const { error } = await supabase
-      .from('leads')
-      .update(dbUpdates)
-      .eq('id', leadId)
-
-    if (error) {
-      console.error('Error updating lead:', error)
-      return false
-    }
-
+    // Update local state immediately
     setLeads(prev => prev.map(l =>
-      l.id === leadId ? { ...l, ...updates, updatedAt: dbUpdates.updated_at } : l
+      l.id === leadId ? updatedLead : l
     ))
+
+    // Update local storage
+    await updateLeadLocally(updatedLead, currentShow)
+
+    // If online, sync to server
+    if (navigator.onLine) {
+      const dbUpdates = {
+        contact_name: updates.contactName,
+        store_name: updates.storeName,
+        email: updates.email || null,
+        phone: updates.phone || null,
+        zip_code: updates.zipCode || null,
+        city: updates.city || null,
+        state: updates.state || null,
+        interests: updates.interests || [],
+        tags: updates.tags || [],
+        temperature: updates.temperature,
+        notes: updates.notes || null,
+        voice_note: updates.voiceNote || null,
+        updated_at: new Date().toISOString()
+      }
+
+      const { error } = await supabase
+        .from('leads')
+        .update(dbUpdates)
+        .eq('id', leadId)
+
+      if (error) {
+        console.error('Error updating lead:', error)
+        return false
+      }
+    } else {
+      // Queue for sync
+      await addToSyncQueue({
+        type: 'updateLead',
+        showId: currentShow,
+        leadId,
+        data: {
+          contact_name: updates.contactName,
+          store_name: updates.storeName,
+          email: updates.email || null,
+          phone: updates.phone || null,
+          zip_code: updates.zipCode || null,
+          city: updates.city || null,
+          state: updates.state || null,
+          interests: updates.interests || [],
+          tags: updates.tags || [],
+          temperature: updates.temperature,
+          notes: updates.notes || null,
+          voice_note: updates.voiceNote || null,
+          updated_at: new Date().toISOString()
+        }
+      })
+      await updatePendingCount()
+    }
+
     return true
   }
 
   const deleteLead = async (leadId) => {
-    const { error } = await supabase
-      .from('leads')
-      .delete()
-      .eq('id', leadId)
+    // Update local state immediately
+    setLeads(prev => prev.filter(l => l.id !== leadId))
 
-    if (error) {
-      console.error('Error deleting lead:', error)
-      return false
+    // Delete from local storage
+    await deleteLeadLocally(leadId)
+
+    // If online, sync to server
+    if (navigator.onLine) {
+      const { error } = await supabase
+        .from('leads')
+        .delete()
+        .eq('id', leadId)
+
+      if (error) {
+        console.error('Error deleting lead:', error)
+        return false
+      }
+    } else {
+      // Queue for sync (only if it's not a temp ID)
+      if (!leadId.startsWith('temp_')) {
+        await addToSyncQueue({
+          type: 'deleteLead',
+          showId: currentShow,
+          leadId
+        })
+        await updatePendingCount()
+      }
     }
 
-    setLeads(prev => prev.filter(l => l.id !== leadId))
     return true
   }
 
@@ -453,7 +700,13 @@ export function AppProvider({ children }) {
     exportToCSV,
 
     // Loading state
-    isLoading
+    isLoading,
+
+    // Offline state
+    isOffline,
+    pendingSyncCount,
+    isSyncing,
+    syncPendingChanges
   }
 
   return (

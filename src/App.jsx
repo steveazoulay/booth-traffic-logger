@@ -9,9 +9,10 @@ import { UserManagement } from './components/UserManagement'
 import { StatsPanel } from './components/StatsPanel'
 import { ShowSelect } from './components/ShowSelect'
 import { ComparativeDashboard } from './components/ComparativeDashboard'
+import { OfflineIndicator } from './components/OfflineIndicator'
 
 function AppContent() {
-  const { currentShow, currentUser, view, isLoading, users } = useApp()
+  const { currentShow, currentUser, view, isLoading, users, isOffline, pendingSyncCount, isSyncing } = useApp()
 
   // Show selection screen first
   if (!currentShow) {
@@ -93,6 +94,11 @@ function AppContent() {
   return (
     <div className="app">
       <Header />
+      <OfflineIndicator
+        isOffline={isOffline}
+        pendingCount={pendingSyncCount}
+        isSyncing={isSyncing}
+      />
       <main className="main-content">
         <TabNav />
         <div className="content-area">
