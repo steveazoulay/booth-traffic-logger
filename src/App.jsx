@@ -7,9 +7,15 @@ import { LeadForm } from './components/LeadForm'
 import { UserSelect } from './components/UserSelect'
 import { UserManagement } from './components/UserManagement'
 import { StatsPanel } from './components/StatsPanel'
+import { ShowSelect } from './components/ShowSelect'
 
 function AppContent() {
-  const { currentUser, view, isLoading, users } = useApp()
+  const { currentShow, currentUser, view, isLoading, users } = useApp()
+
+  // Show selection screen first
+  if (!currentShow) {
+    return <ShowSelect />
+  }
 
   if (isLoading || users.length === 0) {
     return (

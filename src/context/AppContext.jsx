@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 const AppContext = createContext(null)
 
 export function AppProvider({ children }) {
+  const [currentShow, setCurrentShow] = useState(null)
   const [users, setUsers] = useState([])
   const [leads, setLeads] = useState([])
   const [currentUser, setCurrentUser] = useState(null)
@@ -12,13 +13,32 @@ export function AppProvider({ children }) {
   const [filter, setFilter] = useState('all')
   const [isLoading, setIsLoading] = useState(true)
 
-  // Load users from Supabase
-  useEffect(() => {
-    loadUsers()
-  }, [])
+  const selectShow = (showId) => {
+    setCurrentShow(showId)
+    setCurrentUser(null)
+    setUsers([])
+    setLeads([])
+  }
 
-  // Load leads from Supabase
+  const exitShow = () => {
+    setCurrentShow(null)
+    setCurrentUser(null)
+    setUsers([])
+    setLeads([])
+    setView('list')
+  }
+
+  // Load users from Supabase when show is selected
   useEffect(() => {
+    if (currentShow) {
+      loadUsers()
+    }
+  }, [currentShow])
+
+  // Load leads from Supabase when show is selected
+  useEffect(() => {
+    if (!currentShow) return
+
     loadLeads()
 
     // Subscribe to real-time changes
@@ -40,12 +60,15 @@ export function AppProvider({ children }) {
       supabase.removeChannel(leadsSubscription)
       supabase.removeChannel(usersSubscription)
     }
-  }, [])
+  }, [currentShow])
 
   const loadUsers = async () => {
+    if (!currentShow) return
+
     const { data, error } = await supabase
       .from('users')
       .select('*')
+      .eq('show_id', currentShow)
       .order('created_at', { ascending: true })
 
     if (error) {
@@ -57,9 +80,12 @@ export function AppProvider({ children }) {
   }
 
   const loadLeads = async () => {
+    if (!currentShow) return
+
     const { data, error } = await supabase
       .from('leads')
       .select('*')
+      .eq('show_id', currentShow)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -109,7 +135,7 @@ export function AppProvider({ children }) {
   const addUser = async (name, passcode) => {
     const { data, error } = await supabase
       .from('users')
-      .insert([{ name, passcode }])
+      .insert([{ name, passcode, show_id: currentShow }])
       .select()
       .single()
 
@@ -175,7 +201,8 @@ export function AppProvider({ children }) {
       temperature: leadData.temperature,
       notes: leadData.notes || null,
       voice_note: leadData.voiceNote || null,
-      created_by: leadData.createdBy || null
+      created_by: leadData.createdBy || null,
+      show_id: currentShow
     }
 
     const { data, error } = await supabase
@@ -383,6 +410,11 @@ export function AppProvider({ children }) {
   }
 
   const value = {
+    // Show selection
+    currentShow,
+    selectShow,
+    exitShow,
+
     // Users
     users,
     currentUser,

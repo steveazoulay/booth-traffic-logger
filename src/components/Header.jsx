@@ -1,13 +1,15 @@
 import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
-import { LogOut, Download, Settings, X, BarChart3, Users } from 'lucide-react'
+import { LogOut, Download, Settings, X, BarChart3, Users, ArrowLeftRight } from 'lucide-react'
+import { SHOWS } from './ShowSelect'
 
 export function Header() {
-  const { currentUser, logout, exportToCSV, leads, getStats, setView } = useApp()
+  const { currentShow, currentUser, logout, exitShow, exportToCSV, leads, getStats, setView } = useApp()
   const [menuOpen, setMenuOpen] = useState(false)
   const [exportSuccess, setExportSuccess] = useState(false)
 
   const stats = getStats()
+  const showInfo = SHOWS.find(s => s.id === currentShow)
 
   // Permission checks
   const userName = currentUser?.name?.toLowerCase()
@@ -51,7 +53,7 @@ export function Header() {
               onClick={handleLogoClick}
               title="Back to Home"
             />
-            <div className="badge">CHICAGO 2026</div>
+            <div className="badge">{showInfo?.badge || 'SHOW 2026'}</div>
           </div>
           <button
             className="settings-button"
@@ -123,11 +125,19 @@ export function Header() {
           )}
 
           <button
-            className="menu-item menu-item-logout"
+            className="menu-item"
             onClick={logout}
           >
             <LogOut size={18} />
             <span>Switch User</span>
+          </button>
+
+          <button
+            className="menu-item menu-item-logout"
+            onClick={() => { exitShow(); setMenuOpen(false); }}
+          >
+            <ArrowLeftRight size={18} />
+            <span>Change Show</span>
           </button>
         </div>
       )}
