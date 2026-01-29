@@ -12,9 +12,9 @@ export function Header() {
   const showInfo = SHOWS.find(s => s.id === currentShow)
 
   // Permission checks
-  const userName = currentUser?.name?.toLowerCase()
-  const canExport = ['steve', 'melissa', 'shai'].includes(userName)
-  const canManageUsers = userName === 'steve'
+  const userName = currentUser?.name?.toLowerCase() || ''
+  const canExport = userName.includes('steve') || userName.includes('melissa') || userName.includes('shai')
+  const canManageUsers = userName.includes('steve')
 
   const handleLogoClick = () => {
     setView('list')

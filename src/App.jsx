@@ -34,7 +34,7 @@ function AppContent() {
 
   // Settings view (User Management) - Only steve can access
   if (view === 'settings') {
-    const canManageUsers = currentUser?.name?.toLowerCase() === 'steve'
+    const canManageUsers = (currentUser?.name?.toLowerCase() || '').includes('steve')
     if (!canManageUsers) {
       return (
         <div className="app">
