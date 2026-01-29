@@ -235,9 +235,10 @@ export function AppProvider({ children }) {
     if (!navigator.onLine) return
 
     // Use unique channel names per show to avoid conflicts
-    const leadsChannelName = `leads_changes_${currentShow}`
-    const usersChannelName = `users_changes_${currentShow}`
+    const leadsChannelName = `leads_realtime_${currentShow}_${Date.now()}`
+    const usersChannelName = `users_realtime_${currentShow}_${Date.now()}`
 
+    // Subscribe without filter (filter can cause issues), reload all data on change
     const leadsSubscription = supabase
       .channel(leadsChannelName)
       .on(
@@ -245,12 +246,14 @@ export function AppProvider({ children }) {
         {
           event: '*',
           schema: 'public',
-          table: 'leads',
-          filter: `show_id=eq.${currentShow}`
+          table: 'leads'
         },
         (payload) => {
           console.log('Lead change detected:', payload)
-          loadLeads()
+          // Only reload if the change is for our show
+          if (payload.new?.show_id === currentShow || payload.old?.show_id === currentShow) {
+            loadLeads()
+          }
         }
       )
       .subscribe((status) => {
@@ -264,8 +267,7 @@ export function AppProvider({ children }) {
         {
           event: '*',
           schema: 'public',
-          table: 'users',
-          filter: `show_id=eq.${currentShow}`
+          table: 'users'
         },
         (payload) => {
           // Skip reload if we just updated manually (to avoid race condition)
@@ -274,17 +276,29 @@ export function AppProvider({ children }) {
             return
           }
           console.log('User change detected:', payload)
-          loadUsers()
+          // Only reload if the change is for our show
+          if (payload.new?.show_id === currentShow || payload.old?.show_id === currentShow) {
+            loadUsers()
+          }
         }
       )
       .subscribe((status) => {
         console.log('Users subscription status:', status)
       })
 
+    // Auto-refresh every 30 seconds as backup for real-time sync
+    const refreshInterval = setInterval(() => {
+      if (navigator.onLine && document.visibilityState === 'visible') {
+        console.log('Auto-refresh triggered')
+        loadLeads()
+      }
+    }, 30000)
+
     return () => {
       console.log('Cleaning up subscriptions for show:', currentShow)
       supabase.removeChannel(leadsSubscription)
       supabase.removeChannel(usersSubscription)
+      clearInterval(refreshInterval)
     }
   }, [currentShow])
 
